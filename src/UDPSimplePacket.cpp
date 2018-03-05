@@ -19,8 +19,7 @@ bool UDPSimplePacket::isPacketAvailible() {
 	udp->parsePacket();
 
 	if (udp->available() > 0) {
-		//printf("\nReceived packet");
-
+		Serial.println("\nReceived packet");
 		return true;
 	}
 	return false;
@@ -47,15 +46,17 @@ int32_t UDPSimplePacket::sendPacket(uint8_t * buffer, uint32_t numberOfBytes) {
 		return -1;
 	}
 	int ret = udp->write(buffer, numberOfBytes);
-	if (udp->endPacket())
+	if (udp->endPacket()){
+		Serial.println("\nSent packet "+ String(ret));
 		return ret;
+	}
 	return -2;
 }
 
 //wifi event handler
 void UDPSimplePacket::WiFiEvent(WiFiEvent_t event) {
 	switch (event) {
-	case SYSTEM_EVENT_STA_GOT_IP:
+	case SYSTEM_EVENT_STA_GOT_IP:/**< ESP32 station got IP from connected AP */
 		//When connected set
 		Serial.print("WiFi connected! IP address: ");
 		Serial.println(WiFi.localIP());
@@ -64,12 +65,12 @@ void UDPSimplePacket::WiFiEvent(WiFiEvent_t event) {
 		udp->begin(WiFi.localIP(), UDESIMPLEPORT);
 		connected = true;
 		break;
-	case SYSTEM_EVENT_STA_DISCONNECTED:
+	case SYSTEM_EVENT_STA_DISCONNECTED: /**< ESP32 station disconnected from AP */
 		Serial.println("WiFi lost connection");
 		connected = false;
 		break;
 	case SYSTEM_EVENT_WIFI_READY: /**< ESP32 WiFi ready */
-		Serial.println("");
+		Serial.println("ESP32 WiFi ready ");
 		break;
 	case SYSTEM_EVENT_SCAN_DONE: /**< ESP32 finish scanning AP */
 		Serial.println("SYSTEM_EVENT_SCAN_DONE");

@@ -17,18 +17,27 @@ class WiiClassicServerEvent: public PacketEventAbstract {
 private:
 	Classic * classic;
 	uint8_t controllerIndex;
+	void start(){
+		pinMode(23, INPUT);           // set pin to input
+		classic->begin();
+	}
 public:
 	// Packet ID needs to be set
-	WiiClassicServerEvent(Classic * incomingClassic) :
+	WiiClassicServerEvent(Classic * incomingClassic,uint8_t mycontrollerIndex) :
 			PacketEventAbstract(WII_CLASSIC_SERVER) {
 		classic = incomingClassic;
-		controllerIndex = 0;
+		controllerIndex = mycontrollerIndex;
+		start();
+
 	}
 	WiiClassicServerEvent(uint8_t mycontrollerIndex) :
 			PacketEventAbstract(WII_CLASSIC_SERVER) {
 		classic = new Classic();
 		controllerIndex = mycontrollerIndex;
+		start();
+
 	}
+
 	//User function to be called when a packet comes in
 	// Buffer contains data from the packet coming in at the start of the function
 	// User data is written into the buffer to send it back

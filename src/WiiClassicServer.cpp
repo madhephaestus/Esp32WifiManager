@@ -8,6 +8,7 @@
 #include <WiiClassicServer.h>
 
 void WiiClassicServerEvent::event(float * buffer) {
+	Serial.println("Classic");
 	classic->readData();
 	int8_t * charBuff = (int8_t *)buffer;
 	charBuff[0]=controllerIndex;
