@@ -3,7 +3,6 @@
 #include <SimplePacketComs.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
-#define UDESIMPLEPORT 1865
 
 class UDPSimplePacket: public SimplePacketComsAbstract {
 private:

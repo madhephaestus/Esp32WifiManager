@@ -7,6 +7,10 @@
 
 #ifndef ESWPIISERV
 #define ESWPIISERV
+#include <stdint.h>
+#include <stdio.h>
+#include <vector>
+#include <iostream>
 #include <PacketEvent.h>
 #include <cmath>        // std::abs
 #include <WiiChuck.h>

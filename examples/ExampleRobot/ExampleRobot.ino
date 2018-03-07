@@ -21,6 +21,7 @@
 
 #include "WiFi.h"
 #include <Preferences.h>
+#include <EspWii.h>
 
 #define AP_SSID  "RBE_Team_1"       //can set ap hostname here
 #define AP_PW	 "thisissecret"       //can set ap hostname here
@@ -64,17 +65,20 @@ void WiFiEvent(WiFiEvent_t event) {
 		wifi_connected = false;
 		wifiOnDisconnect();
 		break;
+	case SYSTEM_EVENT_AP_STACONNECTED: /**< a station connected to ESP32 soft-AP */
+		Serial.println("SYSTEM_EVENT_AP_STACONNECTED");
+		break;
+
+
 	case SYSTEM_EVENT_WIFI_READY: /**< ESP32 WiFi ready */
 		Serial.println("ESP32 WiFi ready ");
 		break;
 	case SYSTEM_EVENT_SCAN_DONE: /**< ESP32 finish scanning AP */
 		Serial.println("SYSTEM_EVENT_SCAN_DONE");
 		break;
-
 	case SYSTEM_EVENT_STA_STOP: /**< ESP32 station stop */
 		Serial.println("SYSTEM_EVENT_STA_STOP");
 		break;
-
 	case SYSTEM_EVENT_STA_AUTHMODE_CHANGE: /**< the auth mode of AP connected by ESP32 station changed */
 		Serial.println("SYSTEM_EVENT_STA_AUTHMODE_CHANGE");
 		break;
@@ -93,12 +97,8 @@ void WiFiEvent(WiFiEvent_t event) {
 	case SYSTEM_EVENT_STA_WPS_ER_PIN: /**< ESP32 station wps pin code in enrollee mode */
 		Serial.println("SYSTEM_EVENT_STA_WPS_ER_PIN");
 		break;
-
 	case SYSTEM_EVENT_AP_STOP: /**< ESP32 soft-AP stop */
 		Serial.println("SYSTEM_EVENT_AP_STOP");
-		break;
-	case SYSTEM_EVENT_AP_STACONNECTED: /**< a station connected to ESP32 soft-AP */
-		Serial.println("SYSTEM_EVENT_AP_STACONNECTED");
 		break;
 	case SYSTEM_EVENT_AP_STADISCONNECTED: /**< a station disconnected from ESP32 soft-AP */
 		Serial.println("SYSTEM_EVENT_AP_STADISCONNECTED");
@@ -106,7 +106,6 @@ void WiFiEvent(WiFiEvent_t event) {
 	case SYSTEM_EVENT_AP_PROBEREQRECVED: /**< Receive probe request packet in soft-AP interface */
 		Serial.println("SYSTEM_EVENT_AP_PROBEREQRECVED");
 		break;
-
 	case SYSTEM_EVENT_ETH_START: /**< ESP32 ethernet start */
 		Serial.println("SYSTEM_EVENT_ETH_START");
 		break;

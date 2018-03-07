@@ -1,4 +1,4 @@
-#include "UDPSimplePacket.h"
+#include "EspWii.h"
 
 UDPSimplePacket::UDPSimplePacket(WiFiUDP * incomingUdp) {
 	udp = incomingUdp;
@@ -60,11 +60,16 @@ void UDPSimplePacket::WiFiEvent(WiFiEvent_t event) {
 	case SYSTEM_EVENT_STA_GOT_IP:/**< ESP32 station got IP from connected AP */
 		//initializes the UDP state
 		//This initializes the transfer buffer
-		udp->begin(WiFi.localIP(), UDESIMPLEPORT);
+		udp->begin(WiFi.localIP(), SIMPLE_PACKET_UDP_PORT);
 		connected = true;
 		break;
 	case SYSTEM_EVENT_STA_DISCONNECTED: /**< ESP32 station disconnected from AP */
 		connected = false;
+		break;
+	case SYSTEM_EVENT_AP_STACONNECTED: /**< a station connected to ESP32 soft-AP */
+		if(!connected)
+			udp->begin(WiFi.softAPIP(), SIMPLE_PACKET_UDP_PORT);
+		connected = true;
 		break;
 	default:
 		break;
