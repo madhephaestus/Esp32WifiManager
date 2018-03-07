@@ -10,12 +10,11 @@
 #include "AbstractController.h"
 #include <device/UDPSimplePacketComs.hpp>
 #include <client/IPacketResponseEvent.h>
-#include <client/BytePacketType.h>
-
+#include <client/AbstractPacketType.h>
 class UdpController:public AbstractController,public IPacketResponseEvent
 {
 	UDPSimplePacketComs* myconnection;
-	BytePacketType * readController;
+	AbstractPacketType * readController;
 public:
 	UdpController(UDPSimplePacketComs* connection);
 	virtual ~UdpController();
@@ -30,7 +29,8 @@ public:
 
 	void onResponse( int timeBetweenSendAndRecive);
 	void onTimeout( int timeBetweenSendAndRecive);
-
+	void oneShotMode();
+	void continousShotMode();
 };
 
 #endif /* LIBRARIES_ESPWII_SRC_CONTROLLER_UDPCONTROLLER_H_ */

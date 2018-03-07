@@ -6,7 +6,23 @@
  */
 
 #include "UDPSimplePacketComs.hpp"
+static WiFiUDP * udp = NULL;
+static boolean connected = false;
+std::vector<IPAddress*> availibleIPs;
 
+std::vector<IPAddress*> * getAvailibleIPs(){
+	return &availibleIPs;
+}
+
+UDPSimplePacketComs::UDPSimplePacketComs(IPAddress* target) {
+	targetDevice = new IPAddress();
+	targetDevice->fromString(target->toString());
+	if (udp == NULL) {
+		udp = new WiFiUDP();
+		udp->begin(WiFi.softAPIP(), SIMPLE_PACKET_UDP_PORT);
+		connected = true;
+	}
+}
 /**
  * Abstract methods
  */
@@ -40,8 +56,6 @@ int UDPSimplePacketComs::read(uint8_t* message) {
 	if (!connected) {
 		return 0;
 	}
-	long start = millis();
-
 	return udp->read(message, 64);
 }
 /**
@@ -52,7 +66,7 @@ int UDPSimplePacketComs::write(uint8_t * message, int length) {
 	if (!connected) {
 		return 0;
 	}
-	if (!udp->beginPacket(targetDevice[0], SIMPLE_PACKET_UDP_PORT)) {
+	if (!udp->beginPacket(*targetDevice, SIMPLE_PACKET_UDP_PORT)) {
 		return 0;
 	}
 
@@ -73,8 +87,30 @@ bool UDPSimplePacketComs::isResponseReady() {
 	udp->parsePacket();
 
 	if (udp->available() > 0) {
-		//Serial.println("\nReceived packet");
-		return true;
+		boolean found = false;
+		IPAddress * tmp; //= new IPAddress();
+
+		for (std::vector<IPAddress*>::iterator it = availibleIPs.begin();
+				it != availibleIPs.end(); ++it) {
+			tmp = (*it);
+			if (tmp[0] == udp->remoteIP())
+				found = true;
+		}
+		if (!found) {
+			tmp = new IPAddress();
+			tmp->fromString(udp->remoteIP().toString());
+			availibleIPs.push_back(tmp);
+			Serial.println("\nStoring packet from " + udp->remoteIP());
+		}
+		if (targetDevice[0] == udp->remoteIP()) {
+			Serial.println("Received packet from " + udp->remoteIP());
+			return true;
+		} else
+			Serial.println("Received packet, not for me " + udp->remoteIP());
+		if(targetDevice[0][3]==255){
+			Serial.println("Broadcast Listener dumping " + udp->remoteIP());
+			while(udp->read()>=0);
+		}
 	}
 	return false;
 }
@@ -89,11 +125,6 @@ void UDPSimplePacketComs::WiFiEvent(WiFiEvent_t event) {
 		break;
 	case SYSTEM_EVENT_STA_DISCONNECTED: /**< ESP32 station disconnected from AP */
 		connected = false;
-		break;
-	case SYSTEM_EVENT_AP_STACONNECTED: /**< a station connected to ESP32 soft-AP */
-		if (!connected)
-			udp->begin(WiFi.softAPIP(), SIMPLE_PACKET_UDP_PORT);
-		connected = true;
 		break;
 	default:
 		break;

@@ -12,37 +12,18 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include <client/AbstractSimpleComsDevice.h>
+std::vector<IPAddress*> * getAvailibleIPs();
 
 class UDPSimplePacketComs: public AbstractSimpleComsDevice {
-private:
-	WiFiUDP * udp;
-	IPAddress* targetDevice;
+
 public:
-	UDPSimplePacketComs(IPAddress* target) {
-		targetDevice=target;
-		udp=new WiFiUDP();
-	}
+	IPAddress* targetDevice;
+	UDPSimplePacketComs(IPAddress* target);
 
 	~UDPSimplePacketComs() {
 		disconnect();
 	}
-	/**
-	 * call to shut down the device
-	 */
-	void disconnect();
-	/**
-	 * Call to set up the device
-	 */
-	bool connect();
-	/**
-	 * Add a packet to the polling queue
-	 */
-	void addPollingPacket(AbstractPacketType * packet);
-	/**
-	 * Pass each item in the polling queue through the processor
-	 * This is a blocking synchronous function
-	 */
-	void loop(long millis, long timout);
+
 
 	/**
 	 * Abstract methods
@@ -80,7 +61,6 @@ public:
 	 */
 	bool isResponseReady();
 
-	boolean connected = false;
 
 };
 

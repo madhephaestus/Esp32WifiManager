@@ -6,12 +6,12 @@
  */
 
 #include "UdpController.h"
-#include <client/BytePacketType.h>
+#include <client/AbstractPacketType.h>
 
 UdpController::UdpController(UDPSimplePacketComs* connection) {
 	myconnection=connection;
 	myconnection->connect();
-	readController=new BytePacketType(1970, 64);
+	readController=new AbstractPacketType(1970, 64);
 	myconnection->addPollingPacket(readController);
 	readController->setResponseListener(this);
 }
@@ -26,6 +26,14 @@ UdpController::~UdpController() {
 void UdpController::loop(){
 	myconnection->loop(millis(),1000);
 
+}
+void UdpController::oneShotMode(){
+	readController->maxRuns=1;
+	readController->runCount=0;
+}
+void UdpController::continousShotMode(){
+	readController->maxRuns=LONG_MAX;
+	readController->runCount=0;
 }
 /**
  * Returns an array of byte data with each byte representing one controller axis value
