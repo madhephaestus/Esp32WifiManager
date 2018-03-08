@@ -72,7 +72,7 @@ int UDPSimplePacketComs::write(uint8_t * message, int length) {
 
 	int ret = udp->write(message, length);
 	if (udp->endPacket()) {
-		//Serial.println("\nSent packet "+ String(ret));
+		Serial.println("\nSent packet "+ String(ret));
 		return ret;
 	}
 	return 0;
@@ -87,6 +87,9 @@ bool UDPSimplePacketComs::isResponseReady() {
 	udp->parsePacket();
 
 	if (udp->available() > 0) {
+		Serial.println("Got packet packet from " );
+		Serial.println(udp->remoteIP());
+
 		boolean found = false;
 		IPAddress * tmp; //= new IPAddress();
 
@@ -100,15 +103,15 @@ bool UDPSimplePacketComs::isResponseReady() {
 			tmp = new IPAddress();
 			tmp->fromString(udp->remoteIP().toString());
 			availibleIPs.push_back(tmp);
-			Serial.println("\nStoring packet from " + udp->remoteIP());
+			Serial.println("\nStoring packet from " );
 		}
 		if (targetDevice[0] == udp->remoteIP()) {
-			Serial.println("Received packet from " + udp->remoteIP());
+			Serial.println("Received packet from " );
 			return true;
 		} else
-			Serial.println("Received packet, not for me " + udp->remoteIP());
+			Serial.println("Received packet, not for me " );
 		if(targetDevice[0][3]==255){
-			Serial.println("Broadcast Listener dumping " + udp->remoteIP());
+			Serial.println("Broadcast Listener dumping " );
 			while(udp->read()>=0);
 		}
 	}

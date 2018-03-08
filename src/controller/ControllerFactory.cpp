@@ -16,7 +16,7 @@ enum ControllerManager {
 	WaitForSearchToFinish,
 	ShutdownSearch,
 	connectControllers,
-	checkForFailures
+	updateControllers
 };
 static const char * ssid = NULL;
 static const char * passwd = NULL;
@@ -30,6 +30,8 @@ static ControllerManager state = Boot;
 static long searchStartTime = 0;
 static UdpController * pinger = NULL;
 std::vector<IPAddress*> * FactoryAvailibleIPs;
+std::vector<UdpController*> controllerList;
+static volatile bool wifi_remote_Connected = false;
 //when wifi connects
 
 void wifiOnConnect() {
@@ -86,6 +88,7 @@ void WiFiEvent(WiFiEvent_t event) {
 		break;
 	case SYSTEM_EVENT_AP_STACONNECTED: /**< a station connected to ESP32 soft-AP */
 		Serial.println("SYSTEM_EVENT_AP_STACONNECTED");
+		wifi_remote_Connected=true;
 		break;
 
 	case SYSTEM_EVENT_WIFI_READY: /**< ESP32 WiFi ready */
@@ -260,8 +263,8 @@ void launchControllerReciver(const char * myssid, const char * mypwd) {
 	broadcast = WiFi.softAPIP();
 	broadcast[3] = 255;
 	UDPSimplePacketComs * coms = new UDPSimplePacketComs(&broadcast);
-	new AbstractPacketType(1970, 64);
-	//pinger = new UdpController(coms);
+	pinger = new UdpController(coms);
+	pinger->oneShotMode();
 
 	preferences.begin("wifi", false);
 	wifiSSID = preferences.getString("ssid", "none");           //NVS key ssid
@@ -282,35 +285,53 @@ void loopReciver() {
 	switch (state) {
 	case Boot:
 		state = WaitForClients;
+		Serial.println("Boot");
 		break;
 	case WaitForClients:
-		if (wifi_connected) {
+		if (wifi_remote_Connected) {
 			state = BeginSearch;
 		}
+		//Serial.println("WaitForClients");
 		break;
 	case BeginSearch:
 		searchStartTime = millis();
-		state=WaitForSearchToFinish;
+		pinger->oneShotMode();
+		state = WaitForSearchToFinish;
+		Serial.println("BeginSearch");
 		break;
 	case WaitForSearchToFinish:
 		pinger->loop();
-		if ((millis() - searchStartTime) > 1000) {
+		if ((millis() - searchStartTime) > 10000) {
 			state = ShutdownSearch;
 		}
+		//Serial.println("WaitForSearchToFinish");
 		break;
 	case ShutdownSearch:
 		FactoryAvailibleIPs = getAvailibleIPs();
-		for (std::vector<IPAddress*>::iterator it =
-				FactoryAvailibleIPs->begin(); it != FactoryAvailibleIPs->end();
-				++it) {
-			IPAddress* tmp = (*it);
-			Serial.println("Search Result: "+tmp[0]);
-		}
-		state=connectControllers;
+		if(FactoryAvailibleIPs->size()>0)
+			state = connectControllers;
+		else
+			state = BeginSearch;
+		Serial.println("ShutdownSearch");
 		break;
 	case connectControllers:
+		Serial.println("Search Finished, found : "+String(FactoryAvailibleIPs->size()));
+		for (int i=0;i<FactoryAvailibleIPs->size();i++) {
+			IPAddress* tmp =FactoryAvailibleIPs->at(i) ;
+			UDPSimplePacketComs * tmpCom = new UDPSimplePacketComs(tmp);
+			Serial.print("Com's built");
+			UdpController *controller =new UdpController(tmpCom);
+			controllerList.push_back(controller);
+			Serial.print("\r\nController built on: ");
+			Serial.print(tmp[0]);
+		}
+		state = updateControllers;
 		break;
-	case checkForFailures:
+	case updateControllers:
+		//Serial.println("checkForFailures");
+		for (int i=0;i<controllerList.size();i++) {
+			controllerList.at(i)->loop();
+		}
 		break;
 	}
 	if (wifi_connected) {
