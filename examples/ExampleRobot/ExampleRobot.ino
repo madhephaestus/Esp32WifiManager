@@ -23,6 +23,10 @@ void loop()
 		Serial.println("Code running..");
 		m1.write((int)(gameController->getData()[1]<<2));
 		m2.write((int)(gameController->getData()[3]<<3));
+		//	Serial.println("\n\nController Responded in "+String(timeBetweenSendAndRecive));
+		//	for(int i=0;i<20;i++){
+		//		Serial.println("Val "+String(i)+" = "+String(gameController->getData()[i]));
+		//	}
 
 	}else
 		gameController=getUdpController(2);
