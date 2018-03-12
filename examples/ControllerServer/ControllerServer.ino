@@ -33,7 +33,7 @@ void setup() {
 	//classic->enableEncryption(true);
 	simple->attach(new WiiClassicServerEvent(&classic,2));
 	//delay(1000);
-	WiFi.onEvent(WiFiEvent);
+	WiFi.onEvent(WiFiEventServer);
 }
 
 void loop() {
@@ -70,7 +70,7 @@ void connectToWiFi(const char * ssid, const char * pwd) {
 	timeOfLastConnect=millis();
 	timeOfLastDisconnect=millis();
 }
-void WiFiEvent(WiFiEvent_t event) {
+void WiFiEventServer(WiFiEvent_t event) {
 	//Pass the event to the UDP Simple packet server
 	simple->WiFiEvent(event);
 	switch (event) {

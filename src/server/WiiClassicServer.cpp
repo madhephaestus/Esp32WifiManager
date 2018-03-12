@@ -14,10 +14,10 @@ void WiiClassicServerEvent::event(float * buffer) {
 
 	int8_t * charBuff = (int8_t *)buffer;
 	charBuff[0]=controllerIndex;
-	charBuff[1]=classic->getJoyXLeft();
-	charBuff[2]=classic->getJoyYLeft();
-	charBuff[3]=classic->getJoyXRight();
-	charBuff[4]=classic->getJoyYRight();
+	charBuff[1]=classic->getJoyXLeft()<<2;
+	charBuff[2]=classic->getJoyYLeft()<<2;
+	charBuff[3]=classic->getJoyXRight()<<3;
+	charBuff[4]=classic->getJoyYRight()<<3;
 	charBuff[5]=classic->getTriggerLeft();
 	charBuff[6]=classic->getTriggerRight();
 
