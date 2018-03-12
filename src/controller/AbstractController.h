@@ -19,7 +19,10 @@ public:
 	 * Returns an array of byte data with each byte representing one controller axis value
 	 */
 	virtual uint8_t * getData()=0;
-
+	/**
+	 * Get the controller ID
+	 */
+	virtual int getId()=0;
 };
 
 #endif /* LIBRARIES_ESPWII_SRC_CONTROLLER_ABSTRACTCONTROLLER_H_ */

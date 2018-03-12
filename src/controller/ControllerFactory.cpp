@@ -341,6 +341,9 @@ void loopReciver() {
 	}
 }
 AbstractController * getUdpController(int id) {
-
+	for (int i=0;i<controllerList.size();i++) {
+		if(controllerList.at(i)->getId()==id)
+			return controllerList.at(i);
+	}
 	return NULL;
 }

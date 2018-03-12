@@ -31,6 +31,8 @@ public:
 	void onTimeout( int timeBetweenSendAndRecive);
 	void oneShotMode();
 	void continousShotMode();
+	int getId();
+
 };
 
 #endif /* LIBRARIES_ESPWII_SRC_CONTROLLER_UDPCONTROLLER_H_ */

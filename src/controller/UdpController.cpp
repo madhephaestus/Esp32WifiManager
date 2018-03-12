@@ -20,6 +20,10 @@ UdpController::~UdpController() {
 	myconnection->disconnect();
 }
 
+int UdpController::getId(){
+	return readController->getUpstreamBytes()[0];
+}
+
 /**
  * Update the controller
  */
@@ -39,7 +43,7 @@ void UdpController::continousShotMode(){
  * Returns an array of byte data with each byte representing one controller axis value
  */
 uint8_t * UdpController::getData(){
-	return readController->getUpstreamBytes();
+	return readController->getUpstreamBytes()+1;
 }
 
 void UdpController::onTimeout( int timeBetweenSendAndRecive){
@@ -48,8 +52,8 @@ void UdpController::onTimeout( int timeBetweenSendAndRecive){
 }
 
 void UdpController::onResponse( int timeBetweenSendAndRecive){
-	Serial.println("\n\nController Responded in "+String(timeBetweenSendAndRecive));
-	for(int i=0;i<20;i++){
-		Serial.println("Val "+String(i)+" = "+String(getData()[i]));
-	}
+//	Serial.println("\n\nController Responded in "+String(timeBetweenSendAndRecive));
+//	for(int i=0;i<20;i++){
+//		Serial.println("Val "+String(i)+" = "+String(getData()[i]));
+//	}
 }
