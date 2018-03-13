@@ -11,10 +11,10 @@
 #include <device/UDPSimplePacketComs.hpp>
 #include <client/IPacketResponseEvent.h>
 #include <client/AbstractPacketType.h>
-class UdpController:public AbstractController,public IPacketResponseEvent
-{
+class UdpController: public AbstractController, public IPacketResponseEvent {
 	UDPSimplePacketComs* myconnection;
 	AbstractPacketType * readController;
+	bool isTimedOutValue=false;
 public:
 	UdpController(UDPSimplePacketComs* connection);
 	virtual ~UdpController();
@@ -30,11 +30,15 @@ public:
 	 * Returns an array of byte data with each byte representing one upstream value
 	 */
 	uint8_t * getStatus();
-	void onResponse( int timeBetweenSendAndRecive);
-	void onTimeout( int timeBetweenSendAndRecive);
+	void onResponse(int timeBetweenSendAndRecive);
+	void onTimeout(int timeBetweenSendAndRecive);
 	void oneShotMode();
 	void continousShotMode();
 	int getId();
+	/**
+	 * Get the controller timeout state
+	 */
+	bool isTimedOut();
 
 };
 

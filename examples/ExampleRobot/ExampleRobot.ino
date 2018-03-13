@@ -19,14 +19,18 @@ void loop()
 	loopReciver();
 
 	if(gameController!=NULL){
-		//user code
-		Serial.println("Code running..");
-		m1.write((int)(gameController->getData()[1]));
-		m2.write((int)(gameController->getData()[3]));
-		//	for(int i=0;i<26;i++){
-		//		Serial.println("Val "+String(i)+" = "+String(gameController->getData()[i]));
-		//	}
-
+		if(!gameController->isTimedOut()){
+			//user code
+			//Serial.println("Code running..");
+			m1.write((int)(gameController->getData()[1]));
+			m2.write((int)(gameController->getData()[3]));
+			for(int i=0;i<26;i++){
+				Serial.println("Val "+String(i)+" = "+String(gameController->getData()[i]));
+			}
+			for (int i = 0; i < 60; i++) {
+				gameController->getStatus()[i]=37;// set some data to the controller to be printed on the controller side
+			}
+		}
 	}else
 		gameController=getUdpController(2);
 }

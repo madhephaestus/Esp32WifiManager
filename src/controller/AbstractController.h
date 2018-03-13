@@ -27,6 +27,10 @@ public:
 	 * Get the controller ID
 	 */
 	virtual int getId()=0;
+	/**
+	 * Get the controller timeout state
+	 */
+	virtual bool isTimedOut()=0;
 };
 
 #endif /* LIBRARIES_ESPWII_SRC_CONTROLLER_ABSTRACTCONTROLLER_H_ */
