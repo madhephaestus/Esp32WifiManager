@@ -26,7 +26,10 @@ public:
 	 * Returns an array of byte data with each byte representing one controller axis value
 	 */
 	uint8_t * getData();
-
+	/**
+	 * Returns an array of byte data with each byte representing one upstream value
+	 */
+	uint8_t * getStatus();
 	void onResponse( int timeBetweenSendAndRecive);
 	void onTimeout( int timeBetweenSendAndRecive);
 	void oneShotMode();

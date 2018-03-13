@@ -11,9 +11,9 @@
 #include "controller/AbstractController.h"
 
 //#include <controller/ControlFactory.h>
-//void launchControllerServer(const char * ssid, const char * pwd,Classic * classic);
+void launchControllerServer(const char * myssid, const char * mypwd) ;
 void launchControllerReciver(const char * ssid, const char * pwd);
-//void loopServer();
+void loopServer();
 void loopReciver();
 
 AbstractController * getUdpController(int id);

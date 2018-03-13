@@ -20,6 +20,10 @@ public:
 	 */
 	virtual uint8_t * getData()=0;
 	/**
+	 * Returns an array of byte data with each byte representing one  value for upstream display
+	 */
+	virtual uint8_t * getStatus()=0;
+	/**
 	 * Get the controller ID
 	 */
 	virtual int getId()=0;

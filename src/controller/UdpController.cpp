@@ -45,7 +45,12 @@ void UdpController::continousShotMode(){
 uint8_t * UdpController::getData(){
 	return readController->getUpstreamBytes()+1;
 }
-
+/**
+ * Returns an array of byte data with each byte representing one controller axis value
+ */
+uint8_t * UdpController::getStatus(){
+	return readController->getDownstreamBytes();
+}
 void UdpController::onTimeout( int timeBetweenSendAndRecive){
 	Serial.println("\n\nController Timed OUT! "+String(timeBetweenSendAndRecive));
 

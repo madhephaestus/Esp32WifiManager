@@ -16,6 +16,7 @@
 #include <WiiChuck.h>
 
 #define WII_CLASSIC_SERVER 1970
+uint8_t * getControllerStatus();
 
 class WiiClassicServerEvent: public PacketEventAbstract {
 private:
