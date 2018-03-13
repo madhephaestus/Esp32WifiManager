@@ -22,7 +22,7 @@ Classic  classic;
 /**
  * Public functions
  */
-void launchControllerServer(const char * myssid, const char * mypwd) {
+void launchControllerServer(const char * myssid, const char * mypwd, int id) {
 	Serial.begin(115200);
 	Serial.println("Waiting 10 seconds for WiFi to clear");
 	WiFi.disconnect(true);
@@ -38,7 +38,7 @@ void launchControllerServer(const char * myssid, const char * mypwd) {
 	//Connect to the WiFi network
 	connectToWiFi(myssid, mypwd);
 	//classic->enableEncryption(true);
-	simple->attach(new WiiClassicServerEvent(&classic,2));
+	simple->attach(new WiiClassicServerEvent(&classic,id));
 	//delay(1000);
 	WiFi.onEvent(WiFiEventServer);
 

@@ -1,6 +1,7 @@
 #include <EspWii.h>
 #define AP_SSID  "RBE_Team_1"       //can set ap hostname here
 #define AP_PW	 "thisissecret"       //can set ap hostname here
+#define CONTROLLER_ID 2
 AbstractController * gameController=NULL;
 Servo m1;
 Servo m2;
