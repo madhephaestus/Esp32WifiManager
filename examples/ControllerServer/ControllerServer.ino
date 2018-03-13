@@ -13,5 +13,7 @@ void setup() {
 
 void loop() {
 	loopServer();
-
+//	for(int i=0;i<60;i++){
+//		Serial.println("Val "+String(i)+" = "+String( getControllerStatus()[i]));
+//	}
 }
