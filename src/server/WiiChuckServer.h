@@ -5,8 +5,8 @@
  *      Author: hephaestus
  */
 
-#ifndef ESWPIISERV
-#define ESWPIISERV
+#ifndef ESWPIISERVCHUCK
+#define ESWPIISERVCHUCK
 #include <stdint.h>
 #include <stdio.h>
 #include <vector>
@@ -15,7 +15,6 @@
 #include <cmath>        // std::abs
 #include <WiiChuck.h>
 
-#define WII_CLASSIC_SERVER 1970
 #include "ServerStatus.h"
 
 class WiiChuckServerEvent: public PacketEventAbstract {
