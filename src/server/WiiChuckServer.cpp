@@ -10,7 +10,7 @@
 void WiiChuckServerEvent::event(float * buffer) {
 	//Serial.print("\r\nClassic read");
 	classic->readData();
-	//classic->printInputs();
+	classic->printInputs();
 	if(getControllerStatusStartup()){
 		setControllerStatusStartup(true);
 		analogReadResolution(8);
