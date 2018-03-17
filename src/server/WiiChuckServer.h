@@ -17,25 +17,26 @@
 
 #define WII_CLASSIC_SERVER 1970
 #include "ServerStatus.h"
-class WiiClassicServerEvent: public PacketEventAbstract {
+
+class WiiChuckServerEvent: public PacketEventAbstract {
 private:
 	uint8_t controllerIndex;
 	void start(){
 		//classic->begin();
 	}
 public:
-	Classic * classic;
+	Nunchuck * classic;
 	// Packet ID needs to be set
-	WiiClassicServerEvent(Classic * incomingClassic,uint8_t mycontrollerIndex) :
+	WiiChuckServerEvent(Nunchuck * incomingClassic,uint8_t mycontrollerIndex) :
 			PacketEventAbstract(WII_CLASSIC_SERVER) {
 		classic = incomingClassic;
 		controllerIndex = mycontrollerIndex;
 		start();
 
 	}
-	WiiClassicServerEvent(uint8_t mycontrollerIndex) :
+	WiiChuckServerEvent(uint8_t mycontrollerIndex) :
 			PacketEventAbstract(WII_CLASSIC_SERVER) {
-		classic = new Classic();
+		classic = new Nunchuck();
 		controllerIndex = mycontrollerIndex;
 		start();
 

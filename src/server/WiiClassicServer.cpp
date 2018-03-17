@@ -6,28 +6,22 @@
  */
 
 #include "WiiClassicServer.h"
-static uint8_t  status[60];
-static uint8_t  analogPins[6] = {36,39,34,35,32,33};
-static int numAnalog = sizeof(analogPins);
-static bool startup = false;
-uint8_t * getControllerStatus(){
-	return status;
-}
+
 void WiiClassicServerEvent::event(float * buffer) {
 	//Serial.print("\r\nClassic read");
-	//classic->readData();
+	classic->readData();
 	//classic->printInputs();
-	if(startup){
-		startup = true;
+	if(getControllerStatusStartup()){
+		setControllerStatusStartup(true);
 		analogReadResolution(8);
-		for(int i=0;i<numAnalog;i++){
-			pinMode(analogPins[i],INPUT);
+		for(int i=0;i<getNumerOfAnalog();i++){
+			pinMode(getControllerAnalogPins()[i],INPUT);
 		}
 	}
 
 	int8_t * charBuff = (int8_t *)buffer;
 	for(int i=0;i<60;i++){
-		status[i]=charBuff[i];
+		getControllerStatus()[i]=charBuff[i];
 	}
 	charBuff[0]=controllerIndex;
 	charBuff[1]=classic->getJoyXLeft()<<2;
@@ -52,7 +46,7 @@ void WiiClassicServerEvent::event(float * buffer) {
 
 	charBuff[18]=classic->getButtonZLeft();
 	charBuff[19]=classic->getButtonZRight();
-	for(int i=0;i<numAnalog;i++){
-		charBuff[20+i]=analogRead(analogPins[i]);
+	for(int i=0;i<getNumerOfAnalog();i++){
+		charBuff[20+i]=analogRead(getControllerAnalogPins()[i]);
 	}
 }

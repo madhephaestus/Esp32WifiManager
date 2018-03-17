@@ -18,11 +18,10 @@ const  char * networkNameServer;
 const char * networkPswdServer;
 void WiFiEventServer(WiFiEvent_t event) ;
 void connectToWiFi(const char * ssid, const char * pwd) ;
-Classic  classic;
 /**
  * Public functions
  */
-void launchControllerServer(const char * myssid, const char * mypwd, int id) {
+void launchControllerServer(const char * myssid, const char * mypwd,PacketEventAbstract * eventImplementation ) {
 	Serial.begin(115200);
 	Serial.println("Waiting 10 seconds for WiFi to clear");
 	WiFi.disconnect(true);
@@ -38,7 +37,8 @@ void launchControllerServer(const char * myssid, const char * mypwd, int id) {
 	//Connect to the WiFi network
 	connectToWiFi(myssid, mypwd);
 	//classic->enableEncryption(true);
-	simple->attach(new WiiClassicServerEvent(&classic,id));
+	//simple->attach(new WiiClassicServerEvent(&classic,id));
+	simple->attach(eventImplementation);
 	//delay(1000);
 	WiFi.onEvent(WiFiEventServer);
 
@@ -49,8 +49,6 @@ void loopServer() {
 			firstStart=false;
 			//classic.begin();
 		}
-		classic.readData();
-		//classic.printInputs();
 		simple->server();
 	}else{
 		if((millis()-timeOfLastConnect)>10000){
