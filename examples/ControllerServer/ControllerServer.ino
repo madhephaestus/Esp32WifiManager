@@ -1,7 +1,7 @@
-#include <WiiChuck.h>
 #include <SimplePacketComs.h>
-#include <EspWii.h>
+#include <WiiChuck.h>
 #include <WiFi.h>
+#include <EspWii.h>
 
 
 // WiFi network name and password:
