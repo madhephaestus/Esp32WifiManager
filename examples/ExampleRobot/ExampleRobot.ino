@@ -1,3 +1,6 @@
+#include <SimplePacketComs.h>
+#include <WiiChuck.h>
+#include <WiFi.h>
 #include <EspWii.h>
 #define AP_SSID  "RBE_Team_1"       //can set ap hostname here
 #define AP_PW	 "thisissecret"       //can set ap hostname here
