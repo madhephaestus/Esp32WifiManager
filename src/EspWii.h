@@ -7,7 +7,7 @@
 #include <WiiChuck.h>
 #include <server/UDPSimplePacket.h>
 #include <server/WiiClassicServer.h>
-#include <server/WiiChuckServer.h>
+//#include <server/WiiChuckServer.h>
 #include <controller/UdpController.h>
 #include "controller/AbstractController.h"
 
@@ -17,4 +17,4 @@ void launchControllerReciver(const char * ssid, const char * pwd);
 void loopServer();
 void loopReciver();
 
-AbstractController * getUdpController(int id);
+AbstractController * getController(int id);

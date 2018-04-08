@@ -21,12 +21,12 @@ class WiiClassicServerEvent: public PacketEventAbstract {
 private:
 	uint8_t controllerIndex;
 	void start(){
-		//classic->begin();
+		classic->begin();
 	}
 public:
-	Classic * classic;
+	Accessory * classic;
 	// Packet ID needs to be set
-	WiiClassicServerEvent(Classic * incomingClassic,uint8_t mycontrollerIndex) :
+	WiiClassicServerEvent(Accessory * incomingClassic,uint8_t mycontrollerIndex) :
 			PacketEventAbstract(WII_CLASSIC_SERVER) {
 		classic = incomingClassic;
 		controllerIndex = mycontrollerIndex;
@@ -35,7 +35,7 @@ public:
 	}
 	WiiClassicServerEvent(uint8_t mycontrollerIndex) :
 			PacketEventAbstract(WII_CLASSIC_SERVER) {
-		classic = new Classic();
+		classic = new Accessory();
 		controllerIndex = mycontrollerIndex;
 		start();
 

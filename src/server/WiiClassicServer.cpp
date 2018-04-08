@@ -24,29 +24,11 @@ void WiiClassicServerEvent::event(float * buffer) {
 		getControllerStatus()[i]=charBuff[i];
 	}
 	charBuff[0]=controllerIndex;
-	charBuff[1]=classic->getJoyXLeft()<<2;
-	charBuff[2]=classic->getJoyYLeft()<<2;
-	charBuff[3]=classic->getJoyXRight()<<3;
-	charBuff[4]=classic->getJoyYRight()<<3;
-	charBuff[5]=classic->getTriggerLeft();
-	charBuff[6]=classic->getTriggerRight();
-
-	charBuff[7]=classic->getPadRight();
-	charBuff[8]=classic->getPadDown();
-	charBuff[9]=classic->getPadUp();
-	charBuff[10]=classic->getPadLeft();
-	charBuff[11]=classic->getButtonX();
-	charBuff[12]=classic->getButtonY();
-	charBuff[13]=classic->getButtonA();
-	charBuff[14]=classic->getButtonB();
-
-	charBuff[15]=classic->getButtonMinus();
-	charBuff[16]=classic->getButtonHome();
-	charBuff[17]=classic->getButtonPlus();
-
-	charBuff[18]=classic->getButtonZLeft();
-	charBuff[19]=classic->getButtonZRight();
+	uint8_t * values= classic->values;
+	for(int i=0;i<WII_VALUES_ARRAY_SIZE;i++){
+		charBuff[1+i]=values[i];
+	}
 	for(int i=0;i<getNumerOfAnalog();i++){
-		charBuff[20+i]=analogRead(getControllerAnalogPins()[i]);
+		charBuff[WII_VALUES_ARRAY_SIZE+1+i]=analogRead(getControllerAnalogPins()[i]);
 	}
 }

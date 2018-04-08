@@ -9,6 +9,7 @@
 #include "AbstractController.h"
 #include "UdpController.h"
 #include <Preferences.h>
+#include <controller/LocalController.h>
 enum ControllerManager {
 	Boot,
 	WaitForClients,
@@ -33,7 +34,8 @@ std::vector<IPAddress*> * FactoryAvailibleIPs;
 std::vector<UdpController*> controllerList;
 static volatile bool wifi_remote_Connected = false;
 //when wifi connects
-
+Accessory localController;
+LocalController * local=NULL;
 void wifiOnConnect() {
 	Serial.println("STA Connected");
 	Serial.print("STA SSID: ");
@@ -332,6 +334,9 @@ void loopReciver() {
 		for (int i=0;i<controllerList.size();i++) {
 			controllerList.at(i)->loop();
 		}
+		if(local!=NULL){
+			local->loop();
+		}
 		break;
 	}
 	if (wifi_connected) {
@@ -340,7 +345,12 @@ void loopReciver() {
 		wifiDisconnectedLoop();
 	}
 }
-AbstractController * getUdpController(int id) {
+AbstractController * getController(int id) {
+	if(id==0){
+		if(local==NULL)
+			local= new LocalController(&localController);
+		return local;
+	}
 	for (int i=0;i<controllerList.size();i++) {
 		if(controllerList.at(i)->getId()==id)
 			return controllerList.at(i);
