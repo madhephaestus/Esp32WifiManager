@@ -28,16 +28,16 @@ public:
 	 */
 	void loop() {
 		controller->readData();
-		//controller->printInputs();
+		for (int i = 0; i < WII_VALUES_ARRAY_SIZE; i++) {
+			data[i] = controller->getValues()[i];
+
+		}
 	}
 	/**
 	 * Returns an array of byte data with each byte representing one controller axis value
 	 */
 	uint8_t * getData() {
-		for (int i = 0; i < WII_VALUES_ARRAY_SIZE; i++) {
-			data[i] = controller->getValues()[i];
 
-		}
 		return data;
 	}
 	/**

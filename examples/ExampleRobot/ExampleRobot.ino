@@ -10,46 +10,59 @@
 //#define CONTROLLER_ID 2 // use remote controller from WiFi
 #define CONTROLLER_ID 0 // use local Wii controller
 
-// Robot definitionW
+// Robot definition
 class MyRobot: public AbstractRobot {
 private:
 	Servo m1;
 	Servo m2;
+	bool attached = false;
 public:
 	/**
 	 * Called when the start button is pressed and the robot control begins
 	 */
 	void robotStartup() {
-		Serial.println("Attaching servos...");
-		m1.attach(2, 1000, 2000);
-		m2.attach(16, 1000, 2000);
+		if (!attached) {
+			Serial.println("Attaching servos...");
+			m1.attach(2, 1000, 2000);
+			m2.attach(16, 1000, 2000);
+			attached = true; // ensure this happens once and only once
+		}
 	}
 	/**
 	 * Called by the controller between communication with the wireless controller
 	 * during autonomous mode
-	 * @param time the amount of time remaining
-	 * @param dfw instance of the DFW controller
+	 * @param status an array of bytes that the user can write to to be displayed on the base station
 	 */
 	void autonomous(long time, uint8_t * status) {
 		Serial.println("Auto: time remaining: " + String(time));
+		for (int i = 0; i < CONTROLLER_BUFFER_SIZE; i++) {
+			status[i] = 42;// random data placed in buffer to be printed by base station
 
+		}
 	}
 	/**
 	 * Called by the controller between communication with the wireless controller
 	 * during teleop mode
 	 * @param time the amount of time remaining
-	 * @param dfw instance of the DFW controller
+	 * @param status an array of bytes that the user can write to to be displayed on the base station
+	 * @param data the array of bytes representing the data from the game controller
+	 *
 	 */
 	void teleop(long time, uint8_t * status, uint8_t * data) {
+		// map from controller values to servo values
 		int servoValue1 = map(data[1], 0, 255, 0, 180);
-		int servoValue2 = map(data[0], 0, 255, 0, 180);
+		int servoValue2 = map(data[0], 0, 255, 180, 0);
+		//Write to the servo
 		m1.write(servoValue1);
 		m2.write(servoValue2);
 		Serial.println(
 				"Servos updated with: " + String(servoValue1) + " "
 						+ String(servoValue2) + " time remaining: "
 						+ String(time));
+		for (int i = 0; i < CONTROLLER_BUFFER_SIZE; i++) {
+			status[i] = 37;// random data placed in buffer to be printed by base station
 
+		}
 		for (int i = 0; i < CONTROLLER_BUFFER_SIZE; i++) {
 			Serial.println(String(i) + " = " + String(data[i]));
 

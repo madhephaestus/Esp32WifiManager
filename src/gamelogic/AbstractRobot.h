@@ -19,14 +19,15 @@ public:
 	 * Called by the controller between communication with the wireless controller
 	 * during autonomous mode
 	 * @param time the amount of time remaining
-	 * @param dfw instance of the DFW controller
+	 * @param status an array of bytes that the user can write to to be displayed on the base station
 	 */
 	virtual void autonomous( long time,uint8_t * status)=0;
 	/**
 	 * Called by the controller between communication with the wireless controller
 	 * during teleop mode
 	 * @param time the amount of time remaining
-	 * @param dfw instance of the DFW controller
+	 * @param status an array of bytes that the user can write to to be displayed on the base station
+	 * @param data the array of bytes representing the data from the game controller
 	 */
 	virtual void teleop( long time,uint8_t * status, uint8_t * data)=0;
 	/**

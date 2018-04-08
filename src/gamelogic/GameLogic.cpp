@@ -25,28 +25,28 @@ void GameLogic::run(void) {
 		break;
 	default:
 		if (controller->getData()[15] > 128) {
-			//if(state!=waitForAuto){
-			Serial.println("Home pressed, resetting");
-			state = waitForAuto;
-			robot->robotStartup() ;
-			robot->robotShutdown();
-			//}
+			if (state != waitForAuto) {
+				Serial.println("Home pressed, resetting");
+				state = waitForAuto;
+				robot->robotStartup();
+				robot->robotShutdown();
+			}
 		}
 		if (controller->getData()[11] > 128) {
-					//if(state!=waitForAuto){
-			Serial.println("Y pressed, direct to start Autonomous");
-			state = startAuto;
-			robot->robotStartup() ;
-			robot->robotShutdown();
-			//}
+			if (state != Autonomous) {
+				Serial.println("Y pressed, direct to start Autonomous");
+				state = startAuto;
+				robot->robotStartup();
+				robot->robotShutdown();
+			}
 		}
 		if (controller->getData()[10] > 128) {
-							//if(state!=waitForAuto){
-			Serial.println("X pressed, direct to start Teleop");
-			state = startTeleop;
-			robot->robotStartup() ;
-			robot->robotShutdown();
-			//}
+			if (state != Teleop) {
+				Serial.println("X pressed, direct to start Teleop");
+				state = startTeleop;
+				robot->robotStartup();
+				robot->robotShutdown();
+			}
 		}
 	}
 
