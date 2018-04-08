@@ -29,7 +29,7 @@ public:
 	CompetitionState state;
 	void printState();
 	AbstractController * controller;
-
+	bool teleopOnlyMode = false;
 private:
 	bool start();
 	void startup();

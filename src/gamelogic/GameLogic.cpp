@@ -30,6 +30,7 @@ void GameLogic::run(void) {
 				state = waitForAuto;
 				robot->robotStartup();
 				robot->robotShutdown();
+				teleopOnlyMode=false;
 			}
 		}
 		if (controller->getData()[11] > 128) {
@@ -38,14 +39,27 @@ void GameLogic::run(void) {
 				state = startAuto;
 				robot->robotStartup();
 				robot->robotShutdown();
+				teleopOnlyMode=false;
+
 			}
 		}
-		if (controller->getData()[10] > 128) {
+		if (controller->getData()[10] > 128 ) {
 			if (state != Teleop) {
-				Serial.println("X pressed, direct to start Teleop");
+				Serial.println("Direct to run Teleop");
 				state = startTeleop;
 				robot->robotStartup();
 				robot->robotShutdown();
+				teleopOnlyMode=true;
+			}
+		}
+		if (controller->getData()[12] > 128 ) {
+			if (state != Teleop) {
+				Serial.println("Start timed  Teleop");
+				state = startTeleop;
+				robot->robotStartup();
+				robot->robotShutdown();
+				teleopOnlyMode=false;
+
 			}
 		}
 	}
@@ -114,6 +128,8 @@ void GameLogic::run(void) {
 		break;
 	case Teleop:
 		timeDiff = millis() - teleopStartTime;
+		if(teleopOnlyMode)
+			timeDiff=0;
 		if (timeDiff > teleopTime) {
 			state = waitForAuto;
 			Serial.println("\r\nwaiting for auto (press start)...");

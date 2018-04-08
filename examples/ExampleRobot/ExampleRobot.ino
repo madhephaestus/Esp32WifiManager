@@ -4,6 +4,7 @@
 #include <EspWii.h>
 #include <ESP32Servo.h>
 #include <gamelogic/GameLogic.h>
+#include <math.h>
 // Team specific data
 #define AP_SSID  "RBE_Team_1"       //can set ap hostname here
 #define AP_PW	 "thisissecret"       //can set ap hostname here
@@ -16,6 +17,9 @@ private:
 	Servo m1;
 	Servo m2;
 	bool attached = false;
+	long timeSinceUpdate =0;
+	float sinwaveIndex =0;
+	float sinwaveMax = 30;
 public:
 	/**
 	 * Called when the start button is pressed and the robot control begins
@@ -26,6 +30,9 @@ public:
 			m1.attach(2, 1000, 2000);
 			m2.attach(16, 1000, 2000);
 			attached = true; // ensure this happens once and only once
+			/**
+			 * Put setup code here
+			 */
 		}
 	}
 	/**
@@ -34,11 +41,27 @@ public:
 	 * @param status an array of bytes that the user can write to to be displayed on the base station
 	 */
 	void autonomous(long time, uint8_t * status) {
-		Serial.println("Auto: time remaining: " + String(time));
+		//
 		for (int i = 0; i < CONTROLLER_BUFFER_SIZE; i++) {
 			status[i] = 42;// random data placed in buffer to be printed by base station
 
 		}
+		if(millis()-timeSinceUpdate>10){
+			timeSinceUpdate=millis();
+			int servoValue1 = map((long)(sin(sinwaveIndex/sinwaveMax*2*PI)*127), -127, 127, 20, 160);
+			int servoValue2 = map((long)(cos(sinwaveIndex/sinwaveMax*2*PI)*127), -127, 127, 160, 20);
+			sinwaveIndex=sinwaveIndex+1;
+			if(sinwaveIndex>=sinwaveMax)
+				sinwaveIndex=0;
+			//Write to the servo
+			m1.write(servoValue1);
+			m2.write(servoValue2);
+		}else{
+			//Serial.println("Auto: time remaining: " + String(time));
+		}
+		/*
+		 * put autonomous code here
+		 */
 	}
 	/**
 	 * Called by the controller between communication with the wireless controller
@@ -67,6 +90,9 @@ public:
 			Serial.println(String(i) + " = " + String(data[i]));
 
 		}
+		/**
+		 * put teleop code here
+		 */
 
 	}
 	/**
@@ -76,6 +102,9 @@ public:
 		Serial.println("Robot to safe state");
 		m1.write(90);
 		m2.write(90);
+		/**
+		 * Put shutdown code here
+		 */
 
 	}
 	/**
@@ -91,32 +120,11 @@ GameLogic logic(new MyRobot(), CONTROLLER_ID);
 //The setup function is called once at startup of the sketch
 void setup() {
 	launchControllerReciver(AP_SSID, AP_PW);
-
 }
 
 // The loop function is called in an endless loop
 void loop() {
 	logic.run();
 //	logic.printState();// display the current state of the game state machine
-	/*
-	 // to force teleop
-	 switch (logic.state) {
-	 case Teleop:
-	 case powerup:
-	 return; // if starting up or teleop is running, do nothing
-	 default:
-	 logic.state = startTeleop; // force a start of teleop over and over
-	 }
-	 */
-	/*
-	 // to force Autonomous
-	 switch (logic.state){
-	 case Autonomous:
-	 case powerup :
-	 return;// if starting up or Autonomous is running, do nothing
-	 default:
-	 logic.state =startAuto;// force a start of Autonomous over and over
-	 }
-	 */
 
 }

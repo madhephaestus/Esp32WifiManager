@@ -22,6 +22,10 @@ public:
 		controller = toUseController;
 		controller->begin();
 		Serial.println("Creating local Controller");
+		for (int i = 0; i < CONTROLLER_BUFFER_SIZE; i++) {
+			data[i] = 0;
+
+		}
 	}
 	/**
 	 * Update the controller
