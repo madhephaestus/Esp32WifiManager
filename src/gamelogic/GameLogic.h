@@ -19,16 +19,15 @@
 #define teleopTime  120000
 #define functionReturnTime  100
 enum CompetitionState {
-	powerup, waitForAuto, Autonomous,waitForTeleop,startTeleop, Teleop
+	powerup, waitForAuto,startAuto, Autonomous,waitForTeleop,startTeleop, Teleop
 };
 #define Null 0
 class GameLogic {
 public:
 	GameLogic(AbstractRobot * myrobot, int controllerIndex);
 	void run();
-	CompetitionState getCompetitionState(void);
 	CompetitionState state;
-
+	void printState();
 private:
 	bool start();
 	void startup();

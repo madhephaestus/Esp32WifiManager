@@ -37,15 +37,17 @@ void GameLogic::run(void) {
 		/* no break */
 	case waitForAuto:
 		if (start()) {
-			robot->robotStartup();
-			state = Autonomous;
-			autoStartTime = millis(); // sets start time of autonomous
-			Serial.println("\r\nRunning Auto...");
+			state= startAuto;
 			// fall through when a state changes
 		} else
 			break;
 		/* no break */
-
+	case startAuto:
+		robot->robotStartup();
+		state = Autonomous;
+		autoStartTime = millis(); // sets start time of autonomous
+		Serial.println("\r\nRunning Auto...");
+		/* no break */
 	case Autonomous:
 		timeDiff = millis() - autoStartTime;
 		if (timeDiff > autoTime) {
@@ -80,7 +82,7 @@ void GameLogic::run(void) {
 		state = Teleop;
 		teleopStartTime = millis(); // sets start time of autonomous
 		robot->robotStartup();
-		break;
+		/* no break */
 	case Teleop:
 		timeDiff = millis() - teleopStartTime;
 		if (timeDiff > teleopTime) {
@@ -122,6 +124,30 @@ void GameLogic::startup() {
 }
 
 
-CompetitionState GameLogic::getCompetitionState(void) {
-	return state;
+void GameLogic::printState(){
+	switch (state) {
+	case powerup:
+		Serial.println("powerup");
+		break;
+	case waitForAuto:
+		Serial.println("waitForAuto");
+		break;
+	case startAuto:
+		Serial.println("startAuto");
+		break;
+	case Autonomous:
+		Serial.println("Autonomous");
+		break;
+	case waitForTeleop:
+		Serial.println("waitForTeleop");
+		break;
+	case startTeleop:
+		Serial.println("startTeleop");
+		break;
+	case Teleop:
+		Serial.println("Teleop");
+		break;
+
+	}
 }
+

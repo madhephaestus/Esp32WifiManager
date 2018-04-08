@@ -334,10 +334,11 @@ void loopReciver() {
 		for (int i=0;i<controllerList.size();i++) {
 			controllerList.at(i)->loop();
 		}
-		if(local!=NULL){
-			local->loop();
-		}
+
 		break;
+	}
+	if(local!=NULL){
+		local->loop();
 	}
 	if (wifi_connected) {
 		wifiConnectedLoop();

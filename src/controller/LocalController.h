@@ -19,17 +19,20 @@ public:
 	LocalController(Accessory * toUseController) {
 		controller = toUseController;
 		controller->begin();
+		Serial.println("Creating local Controller");
 	}
 	/**
 	 * Update the controller
 	 */
 	void loop() {
 		controller->readData();
+		//controller->printInputs();
 	}
 	/**
 	 * Returns an array of byte data with each byte representing one controller axis value
 	 */
 	uint8_t * getData(){
+
 		return controller->getValues();
 	}
 	/**
