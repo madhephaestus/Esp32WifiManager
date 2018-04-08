@@ -251,7 +251,7 @@ void launchControllerReciver(const char * myssid, const char * mypwd) {
 	Serial.println("Waiting 10 seconds for WiFi to clear");
 	WiFi.disconnect(true);
 	delay(5000); // wait for WiFI stack to fully timeout
-	Serial.println("Waiting 5 seconds for WiFi to clear");
+	Serial.println("still waiting 5 seconds for WiFi to clear");
 	delay(5000); // wait for WiFI stack to fully timeout
 
 	WiFi.onEvent(WiFiEvent);
@@ -287,7 +287,7 @@ void loopReciver() {
 	switch (state) {
 	case Boot:
 		state = WaitForClients;
-		Serial.println("Boot");
+		Serial.println("Boot controller factory");
 		break;
 	case WaitForClients:
 		if (wifi_remote_Connected) {
@@ -299,7 +299,7 @@ void loopReciver() {
 		searchStartTime = millis();
 		pinger->oneShotMode();
 		state = WaitForSearchToFinish;
-		Serial.println("BeginSearch");
+		Serial.println("BeginSearch controller factory, Expect Timeouts");
 		break;
 	case WaitForSearchToFinish:
 		pinger->loop();
@@ -314,7 +314,7 @@ void loopReciver() {
 			state = connectControllers;
 		else
 			state = BeginSearch;
-		Serial.println("ShutdownSearch");
+		Serial.println("ShutdownSearch controller factory");
 		break;
 	case connectControllers:
 		Serial.println("Search Finished, found : "+String(FactoryAvailibleIPs->size()));

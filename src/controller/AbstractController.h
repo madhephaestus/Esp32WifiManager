@@ -8,6 +8,7 @@
 #ifndef ABSTRACTCONTROLLER
 #define ABSTRACTCONTROLLER
 #include <stdint.h>
+#define CONTROLLER_BUFFER_SIZE 60
 
 class AbstractController {
 public:

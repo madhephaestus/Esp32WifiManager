@@ -14,12 +14,41 @@
 bool GameLogic::start() {
 	if (controller == NULL)
 		return false;
-	return controller->getData()[14]>128;
+	return controller->getData()[14] > 128;
 }
 void GameLogic::run(void) {
 	update();
 	unsigned long tmp = 0;
 	long timeDiff = 0;
+	switch (state) {
+	case powerup:
+		break;
+	default:
+		if (controller->getData()[15] > 128) {
+			//if(state!=waitForAuto){
+			Serial.println("Home pressed, resetting");
+			state = waitForAuto;
+			robot->robotStartup() ;
+			robot->robotShutdown();
+			//}
+		}
+		if (controller->getData()[11] > 128) {
+					//if(state!=waitForAuto){
+			Serial.println("Y pressed, direct to start Autonomous");
+			state = startAuto;
+			robot->robotStartup() ;
+			robot->robotShutdown();
+			//}
+		}
+		if (controller->getData()[10] > 128) {
+							//if(state!=waitForAuto){
+			Serial.println("X pressed, direct to start Teleop");
+			state = startTeleop;
+			robot->robotStartup() ;
+			robot->robotShutdown();
+			//}
+		}
+	}
 
 	switch (state) {
 	case powerup:
@@ -27,7 +56,7 @@ void GameLogic::run(void) {
 		Serial.println("\r\nwaiting for Controller to connect init...");
 		if (controller == NULL) {
 			controller = getController(controllerIndex);
-			return;// try back later
+			return; // try back later
 		}
 		if (!start()) {
 			state = waitForAuto;
@@ -37,7 +66,7 @@ void GameLogic::run(void) {
 		/* no break */
 	case waitForAuto:
 		if (start()) {
-			state= startAuto;
+			state = startAuto;
 			// fall through when a state changes
 		} else
 			break;
@@ -47,7 +76,7 @@ void GameLogic::run(void) {
 		state = Autonomous;
 		autoStartTime = millis(); // sets start time of autonomous
 		Serial.println("\r\nRunning Auto...");
-		/* no break */
+		break;
 	case Autonomous:
 		timeDiff = millis() - autoStartTime;
 		if (timeDiff > autoTime) {
@@ -57,7 +86,7 @@ void GameLogic::run(void) {
 			// fall through when a state changes
 		} else {
 			tmp = millis();
-			robot->autonomous(autoTime - timeDiff,controller->getStatus());
+			robot->autonomous(autoTime - timeDiff, controller->getStatus());
 			if (functionReturnTime < (millis() - tmp)) {
 				Serial.print(
 						"\r\n\r\nERROR!! user Functions should return in ");
@@ -82,7 +111,7 @@ void GameLogic::run(void) {
 		state = Teleop;
 		teleopStartTime = millis(); // sets start time of autonomous
 		robot->robotStartup();
-		/* no break */
+		break;
 	case Teleop:
 		timeDiff = millis() - teleopStartTime;
 		if (timeDiff > teleopTime) {
@@ -91,7 +120,8 @@ void GameLogic::run(void) {
 			robot->robotShutdown();
 		} else {
 			tmp = millis();
-			robot->teleop(teleopTime - timeDiff,controller->getStatus(),controller->getData());
+			robot->teleop(teleopTime - timeDiff, controller->getStatus(),
+					controller->getData());
 			if (functionReturnTime < (millis() - tmp)) {
 				Serial.print(
 						"\r\n\r\nERROR!! user Functions should return in ");
@@ -123,8 +153,7 @@ void GameLogic::startup() {
 	digitalWrite(robot->getDebugLEDPin(), 0);
 }
 
-
-void GameLogic::printState(){
+void GameLogic::printState() {
 	switch (state) {
 	case powerup:
 		Serial.println("powerup");

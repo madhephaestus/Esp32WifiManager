@@ -28,12 +28,13 @@ public:
 	void run();
 	CompetitionState state;
 	void printState();
+	AbstractController * controller;
+
 private:
 	bool start();
 	void startup();
 	int controllerIndex=0;
 	AbstractRobot * robot;
-	AbstractController * controller;
 	void update(void);
 	long autoStartTime;
 	long teleopStartTime;
