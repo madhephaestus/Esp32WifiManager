@@ -13,6 +13,7 @@
 
 //#include <controller/ControlFactory.h>
 void launchControllerServer(const char * myssid, const char * mypwd,PacketEventAbstract * eventImplementation ) ;
+void addServer(PacketEventAbstract * eventImplementation );
 void launchControllerReciver(const char * ssid, const char * pwd);
 void loopServer();
 void loopReciver();

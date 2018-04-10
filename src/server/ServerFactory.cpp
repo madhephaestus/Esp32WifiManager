@@ -7,6 +7,8 @@
 
 #include "EspWii.h"
 #include <WiiChuck.h>
+#include <SimplePacketComs.h>
+#include <WiFi.h>
 //Are we currently connected?
 //The udp library class
 UDPSimplePacket * simple;
@@ -26,23 +28,27 @@ void launchControllerServer(const char * myssid, const char * mypwd,PacketEventA
 	Serial.println("Waiting 10 seconds for WiFi to clear");
 	WiFi.disconnect(true);
 	delay(5000);// wait for WiFI stack to fully timeout
-	Serial.println("Waiting 5 seconds for WiFi to clear");
+	Serial.println("still waiting 5 more seconds for WiFi to clear");
 	delay(5000);// wait for WiFI stack to fully timeout
 	networkNameServer=myssid;
 	networkPswdServer=mypwd;
 	// put your setup code here: to run once:
 
 	simple = new UDPSimplePacket();
-	pinMode(23, INPUT);           // set pin to input
+	//pinMode(23, INPUT);           // set pin to input
 	//Connect to the WiFi network
 	connectToWiFi(myssid, mypwd);
 	//classic->enableEncryption(true);
 	//simple->attach(new WiiClassicServerEvent(&classic,id));
-	simple->attach(eventImplementation);
+	addServer( eventImplementation );
 	//delay(1000);
 	WiFi.onEvent(WiFiEventServer);
 
 }
+void addServer(PacketEventAbstract * eventImplementation ){
+	simple->attach(eventImplementation);
+}
+
 void loopServer() {
 	if(connected){
 		if(firstStart){
