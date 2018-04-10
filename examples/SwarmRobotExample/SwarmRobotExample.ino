@@ -7,6 +7,7 @@
 
 // WiFi network name and password:
 //#include <auth.h> //put your credential in a file called this and do not commit it to verison control!
+
 const char *networkName = "RBE_Team_1";
 const char *networkPswd = "thisissecret";
 //A robot class to share data between listeners
@@ -86,7 +87,7 @@ void setup() {
 	//Add additional servers
 	addServer(new ReadAndWriteServerEvent(&robot));
 	// Send and recive bytes instead of floats
-	addServer(new ReadAndWriteServerEvent(&robot));
+	addServer(new BytePacketServerEvent(&robot));
 }
 
 void loop() {
