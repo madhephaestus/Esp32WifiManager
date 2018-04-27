@@ -20,6 +20,41 @@ const  char * networkNameServer;
 const char * networkPswdServer;
 void WiFiEventServer(WiFiEvent_t event) ;
 void connectToWiFi(const char * ssid, const char * pwd) ;
+class NameCheckerServer: public PacketEventAbstract {
+	String * namePointer;
+public:
+	// Packet ID needs to be set
+	NameCheckerServer(String *robot):
+		PacketEventAbstract(1917)// Address of this event
+	{
+		namePointer=robot;
+	}
+	//User function to be called when a packet comes in
+	// Buffer contains data from the packet coming in at the start of the function
+	// User data is written into the buffer to send it back
+	void event(float * buffer){
+		if(namePointer==NULL){
+			return;
+		}
+		const char * bytes = (const char *)buffer;
+
+		for (int i=0;i<namePointer->length();i++){
+			if(bytes[i]=='*'){
+				break;// if we match up to a wildcard, assume match
+			}
+			if(bytes[i]!=namePointer->charAt(i)&&
+			   bytes[i]!=0xFF	){
+				Serial.print("\r\nFailed name check "+namePointer[0]+" got: ");
+				for (int j=0;j<namePointer->length();j++){
+					Serial.print(bytes[j]);
+				}
+				noResponse=true;//Name check failed
+				return;
+			}
+		}
+		Serial.print("\r\nSuccess name check "+namePointer[0]);
+	}
+};
 /**
  * Public functions
  */
@@ -41,9 +76,14 @@ void launchControllerServer(const char * myssid, const char * mypwd,PacketEventA
 	//classic->enableEncryption(true);
 	//simple->attach(new WiiClassicServerEvent(&classic,id));
 	addServer( eventImplementation );
+
 	//delay(1000);
 	WiFi.onEvent(WiFiEventServer);
 
+}
+void setNameUdpDevice(String *robot ){
+	addServer( new NameCheckerServer(robot) );
+	Serial.println("Setting controller name to: "+robot[0]);
 }
 void addServer(PacketEventAbstract * eventImplementation ){
 	simple->attach(eventImplementation);
@@ -78,6 +118,8 @@ void connectToWiFi(const char * ssid, const char * pwd) {
 	Serial.println("Waiting for WIFI connection...");
 	timeOfLastConnect=millis();
 	timeOfLastDisconnect=millis();
+	String mac = WiFi.macAddress();
+	Serial.println("Mac Address: "+mac);
 }
 void WiFiEventServer(WiFiEvent_t event) {
 	//Pass the event to the UDP Simple packet server

@@ -5,22 +5,24 @@
 #include <ESP32Servo.h>
 
 // WiFi network name and password:
-const char *networkName = "RBE_Team_1";
-const char *networkPswd = "thisissecret";
+#define AP_SSID  "RBE_Team_1"       //can set ap hostname here
+#define AP_PW	 "thisissecret"       //can set ap hostname here
 #define CONTROLLER_ID 2
-//Nunchuck * nun= new Accessory();
+#define TEAMNUMBER    21
+String * controllerName = new String("GameController_"+String(TEAMNUMBER));
+
 Accessory  classic;
 long timeSincePrint=0;
 void setup() {
-	launchControllerServer(networkName, networkPswd,new WiiClassicServerEvent(&classic,CONTROLLER_ID));
-	//launchControllerServer(networkName, networkPswd,new WiiChuckServerEvent(nun,CONTROLLER_ID));
-	//classic.type=WIICLASSIC;
+	launchControllerServer(AP_SSID, AP_PW,new WiiClassicServerEvent(&classic,CONTROLLER_ID));
+	setNameUdpDevice(controllerName);
 
 }
 
 void loop() {
 	loopServer();
 	classic.readData();
+	/*
 	if(millis()-timeSincePrint>100){
 		timeSincePrint=millis();
 		classic.printInputs();
@@ -32,4 +34,5 @@ void loop() {
 			Serial.println("Controller Val "+String(i)+" = "+String( (uint8_t)classic.values[i]));
 		}
 	}
+	*/
 }

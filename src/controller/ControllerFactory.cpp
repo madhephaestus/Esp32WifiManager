@@ -10,6 +10,7 @@
 #include "UdpController.h"
 #include <Preferences.h>
 #include <controller/LocalController.h>
+#include <device/UdpNameSearch.h>
 enum ControllerManager {
 	Boot,
 	WaitForClients,
@@ -21,6 +22,7 @@ enum ControllerManager {
 };
 static const char * ssid = NULL;
 static const char * passwd = NULL;
+static String * controllerNamePointer = NULL;
 static WiFiServer server(80);
 static Preferences preferences;
 static volatile bool wifi_connected = false;
@@ -29,7 +31,7 @@ static boolean useClient = false;
 static IPAddress broadcast;
 static ControllerManager state = Boot;
 static long searchStartTime = 0;
-static UdpController * pinger = NULL;
+static UdpNameSearch * pinger = NULL;
 std::vector<IPAddress*> * FactoryAvailibleIPs;
 std::vector<UdpController*> controllerList;
 static volatile bool wifi_remote_Connected = false;
@@ -244,9 +246,10 @@ void wifiDisconnectedLoop() {
 /**
  * Public functions
  */
-void launchControllerReciver(const char * myssid, const char * mypwd) {
+void launchControllerReciver(const char * myssid, const char * mypwd,String * controllerName) {
 	ssid = myssid;
 	passwd = mypwd;
+	controllerNamePointer=controllerName;
 	Serial.begin(115200);
 	Serial.println("Waiting 10 seconds for WiFi to clear");
 	WiFi.disconnect(true);
@@ -265,7 +268,7 @@ void launchControllerReciver(const char * myssid, const char * mypwd) {
 	broadcast = WiFi.softAPIP();
 	broadcast[3] = 255;
 	UDPSimplePacketComs * coms = new UDPSimplePacketComs(&broadcast);
-	pinger = new UdpController(coms);
+	pinger = new UdpNameSearch(coms,controllerName);
 	pinger->oneShotMode();
 
 	preferences.begin("wifi", false);

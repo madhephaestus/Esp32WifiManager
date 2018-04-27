@@ -9,8 +9,9 @@
 #define AP_SSID  "RBE_Team_1"       //can set ap hostname here
 #define AP_PW	 "thisissecret"       //can set ap hostname here
 //#define CONTROLLER_ID 2 // use remote controller from WiFi
-#define CONTROLLER_ID 0 // use local Wii controller
-
+#define CONTROLLER_ID 2 // use local Wii controller
+#define TEAMNUMBER    21
+String * controllerName = new String("GameController_"+String(TEAMNUMBER));
 // Robot definition
 class MyRobot: public AbstractRobot {
 private:
@@ -119,7 +120,7 @@ GameLogic logic(new MyRobot(), CONTROLLER_ID);
 
 //The setup function is called once at startup of the sketch
 void setup() {
-	launchControllerReciver(AP_SSID, AP_PW);
+	launchControllerReciver(AP_SSID, AP_PW, controllerName);
 }
 
 // The loop function is called in an endless loop

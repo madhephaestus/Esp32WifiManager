@@ -8,8 +8,8 @@
 // WiFi network name and password:
 //#include <auth.h> //put your credential in a file called this and do not commit it to verison control!
 
-const char *networkName = "RBE_Team_1";
-const char *networkPswd = "thisissecret";
+const char *networkName = "falcon";
+const char *networkPswd = "turtlebot";
 //A robot class to share data between listeners
 class MyRobot{
 public :
