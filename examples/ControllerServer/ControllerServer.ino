@@ -4,9 +4,6 @@
 #include <EspWii.h>
 #include <ESP32Servo.h>
 
-// WiFi network name and password:
-#define AP_SSID  "RBE_Team_1"       //can set ap hostname here
-#define AP_PW	 "thisissecret"       //can set ap hostname here
 #define CONTROLLER_ID 2
 #define TEAMNUMBER    22
 String * controllerName = new String("GameController_"+String(TEAMNUMBER));
@@ -14,7 +11,8 @@ String * controllerName = new String("GameController_"+String(TEAMNUMBER));
 Accessory  classic;
 long timeSincePrint=0;
 void setup() {
-	launchControllerServer(AP_SSID, AP_PW,new WiiClassicServerEvent(&classic,CONTROLLER_ID));
+	launchControllerServer();
+	addServer(new WiiClassicServerEvent(&classic,CONTROLLER_ID));
 	setNameUdpDevice(controllerName);
 
 }
