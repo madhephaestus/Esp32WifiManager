@@ -6,9 +6,9 @@ A framework for controlling one ESP from another using various Wii accessories.
 ## Get Name (All UDP devices)
 | |ID | bytes |
 |--- |--- | --- |
-|Number of Bytes |4 | 60 |
+| downstream  Bytes |4 | 60 |
 | Contents downstream |1917 | String of Name or \* |
-|Number of Bytes |4 | 60 |
+| upstream  Bytes |4 | 60 |
 | Contents upstream |1917 | String of Name|
 
 This checks the device to see if the name of the device matched a given name. If the name matches a packet is returned with the device name in its contents. If the name does not match, no packet is returned. 
@@ -20,9 +20,9 @@ If the name requests ends with a \* charrecter then it wil be treated as a wildc
 ### Get Status
 | |ID | byte |
 |--- |--- | --- |
-|Number of Bytes |4 | 0 |
+| downstream Bytes |4 | 0 |
 | Contents downstream |2012 | --- |
-|Number of Bytes |4 | 1 |
+| upstream Bytes |4 | 1 |
 | Contents upstream |2012 | status value|
 
 Request the status of the robot. The byte value represents the robot state.
@@ -45,13 +45,19 @@ Request the status of the robot. The byte value represents the robot state.
 
 | |ID | byte |
 |--- |--- | --- |
-|Number of Bytes |4 | 0 |
+| downstream Bytes |4 | 0 |
 | Contents downstream |1871 | --- |
-|Number of Bytes |4 | 0 |
+| upstream Bytes |4 | 0 |
 | Contents upstream |1871 | ---|
 
 Clear all faults on the robot. No data is transmitted, but the state of the robot should be effected. 
 
+### Pick Order
 
-
+| |ID | float |float |float |float |float |float |
+|--- |--- | --- |--- | --- |--- | --- | --- |
+| downstream Bytes |4 | 4 | 4 | 4 | 4 | 4 | 4 |
+| Contents downstream |1936 | pickup area | pickup x | pickup z | drop off area | drop off  x | drop off  z |
+| upstream Bytes |4 | 0 |
+| Contents upstream |1936 | ---|
 
