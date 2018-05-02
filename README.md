@@ -39,6 +39,18 @@ Request the status of the robot. The byte value represents the robot state.
 | Fault: failed dropoff| 7 |
 | Fault: excessive load| 8 |
 | Fault: obstructed path| 9 |
+| Fault: E Stop pressed | 10 |
+
+### Clear Faults 
+
+| |ID | byte |
+|--- |--- | --- |
+|Number of Bytes |4 | 0 |
+| Contents downstream |1871 | --- |
+|Number of Bytes |4 | 0 |
+| Contents upstream |1871 | ---|
+
+Clear all faults on the robot. No data is transmitted, but the state of the robot should be effected. 
 
 
 
