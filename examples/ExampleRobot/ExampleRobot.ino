@@ -8,9 +8,9 @@
 // Team specific data
 #define AP_SSID  "RBE_Team_1"       //can set ap hostname here
 #define AP_PW	 "thisissecret"       //can set ap hostname here
-//#define CONTROLLER_ID 2 // use remote controller from WiFi
-#define CONTROLLER_ID 2 // use local Wii controller
-#define TEAMNUMBER    21
+#define CONTROLLER_ID 2 // use remote controller from WiFi
+//#define CONTROLLER_ID 0 // use local Wii controller
+#define TEAMNUMBER    22
 String * controllerName = new String("GameController_"+String(TEAMNUMBER));
 // Robot definition
 class MyRobot: public AbstractRobot {
@@ -79,18 +79,18 @@ public:
 		//Write to the servo
 		m1.write(servoValue1);
 		m2.write(servoValue2);
-		Serial.println(
-				"Servos updated with: " + String(servoValue1) + " "
-						+ String(servoValue2) + " time remaining: "
-						+ String(time));
+//		Serial.println(
+//				"Servos updated with: " + String(servoValue1) + " "
+//						+ String(servoValue2) + " time remaining: "
+//						+ String(time));
 		for (int i = 0; i < CONTROLLER_BUFFER_SIZE; i++) {
 			status[i] = 37;// random data placed in buffer to be printed by base station
 
 		}
-		for (int i = 0; i < CONTROLLER_BUFFER_SIZE; i++) {
-			Serial.println(String(i) + " = " + String(data[i]));
-
-		}
+//		for (int i = 0; i < CONTROLLER_BUFFER_SIZE; i++) {
+//			Serial.println(String(i) + " = " + String(data[i]));
+//
+//		}
 		/**
 		 * put teleop code here
 		 */

@@ -9,17 +9,21 @@
 #include <WiiChuck.h>
 #include <SimplePacketComs.h>
 #include <WiFi.h>
+#include <Preferences.h>
+
 //Are we currently connected?
 //The udp library class
 UDPSimplePacket * simple;
-boolean firstStart=true;
-boolean connected = false;
+//boolean connected = false;
 long timeOfLastDisconnect=0;
 long timeOfLastConnect=0;
-const  char * networkNameServer;
-const char * networkPswdServer;
+static String networkNameServer;
+static String networkPswdServer;
 void WiFiEventServer(WiFiEvent_t event) ;
 void connectToWiFi(const char * ssid, const char * pwd) ;
+static Preferences preferences;
+static enum connectionState {firstStart,Disconnected,Connected,HaveSSIDSerial, reconnect} state=firstStart ;
+
 class NameCheckerServer: public PacketEventAbstract {
 	String * namePointer;
 public:
@@ -36,7 +40,7 @@ public:
 		if(namePointer==NULL){
 			return;
 		}
-		const char * bytes = (const char *)buffer;
+		char * bytes = (char *)buffer;
 
 		for (int i=0;i<namePointer->length();i++){
 			if(bytes[i]=='*'){
@@ -52,35 +56,31 @@ public:
 				return;
 			}
 		}
+		int i;
+		for ( i=0;i<namePointer->length()&& i<60;i++){
+			bytes[i]=namePointer->charAt(i);
+		}for ( i=namePointer->length();i<60;i++){
+			bytes[i]=0;
+		}
 		Serial.print("\r\nSuccess name check "+namePointer[0]);
 	}
 };
-/**
- * Public functions
- */
-void launchControllerServer(const char * myssid, const char * mypwd,PacketEventAbstract * eventImplementation ) {
+void launchControllerServer() {
 	Serial.begin(115200);
-	Serial.println("Waiting 10 seconds for WiFi to clear");
-	WiFi.disconnect(true);
-	delay(5000);// wait for WiFI stack to fully timeout
-	Serial.println("still waiting 5 more seconds for WiFi to clear");
-	delay(5000);// wait for WiFI stack to fully timeout
-	networkNameServer=myssid;
-	networkPswdServer=mypwd;
+
+	preferences.begin("wifi", false);
+	networkNameServer = preferences.getString("ssid", "none");           //NVS key ssid
+	networkPswdServer = preferences.getString("password", "none"); //NVS key password
+	preferences.end();
 	// put your setup code here: to run once:
 
 	simple = new UDPSimplePacket();
-	//pinMode(23, INPUT);           // set pin to input
 	//Connect to the WiFi network
-	connectToWiFi(myssid, mypwd);
-	//classic->enableEncryption(true);
-	//simple->attach(new WiiClassicServerEvent(&classic,id));
-	addServer( eventImplementation );
-
+	state=reconnect;
 	//delay(1000);
 	WiFi.onEvent(WiFiEventServer);
-
 }
+
 void setNameUdpDevice(String *robot ){
 	addServer( new NameCheckerServer(robot) );
 	Serial.println("Setting controller name to: "+robot[0]);
@@ -90,28 +90,58 @@ void addServer(PacketEventAbstract * eventImplementation ){
 }
 
 void loopServer() {
-	if(connected){
-		if(firstStart){
-			firstStart=false;
-			//classic.begin();
+	if(state != HaveSSIDSerial){
+		if(Serial.available()>0){
+			networkNameServer=Serial.readString();
+			state=HaveSSIDSerial;
+			Serial.println("New ssid: "+networkNameServer);
+			Serial.println("New password: ");
+
 		}
+	}
+	switch(state){
+	case firstStart:
+		state=Connected;
+		//no break
+	case Connected:
 		simple->server();
-	}else{
-		if((millis()-timeOfLastConnect)>10000){
-			if((millis()-timeOfLastDisconnect)>11000){
-				Serial.println("Re-connect to WiFi network");
-				//Connect to the WiFi network
-				connectToWiFi(networkNameServer, networkPswdServer);
-			}
+		break;
+	case Disconnected:
+		if((millis()-timeOfLastConnect)>5000)
+			if((millis()-timeOfLastDisconnect)>6000)
+				state=reconnect;
+		break;
+	case reconnect:
+		Serial.println("connect to WiFi network");
+		//Connect to the WiFi network
+		connectToWiFi(networkNameServer.c_str(), networkPswdServer.c_str());
+		state=Disconnected;
+		break;
+	case HaveSSIDSerial:
+		if(Serial.available()>0){
+			networkPswdServer=Serial.readString();
+			preferences.clear();
+			preferences.begin("wifi", false); // Note: Namespace name is limited to 15 chars
+			Serial.println("Writing new ssid "+networkNameServer);
+			preferences.putString("ssid", networkNameServer);
+
+			Serial.println("Writing new pass "+networkPswdServer);
+			preferences.putString("password", networkPswdServer);
+			delay(300);
+			preferences.end();
+			state=reconnect;
 		}
+		break;
 	}
 
 }
 
 
 void connectToWiFi(const char * ssid, const char * pwd) {
+	WiFi.disconnect(true);
+	Serial.println("waiting 1 more second for WiFi to clear");
+	delay(1000);// wait for WiFI stack to fully timeout
 	Serial.println("Attempting to connect to WiFi network: " + String(ssid));
-
 //Initiate connection
 	WiFi.begin(ssid, pwd);
 
@@ -129,12 +159,12 @@ void WiFiEventServer(WiFiEvent_t event) {
 		//When connected set
 		Serial.print("WiFi connected! IP address: ");
 		Serial.println(WiFi.localIP());
-		connected = true;
+		state=Connected;
 		break;
 	case SYSTEM_EVENT_STA_DISCONNECTED: /**< ESP32 station disconnected from AP */
 		Serial.println("WiFi lost connection, waiting 10 seconds to reconnect");
 		timeOfLastDisconnect=millis();
-		connected = false;
+		state=Disconnected;
 		break;
 	case SYSTEM_EVENT_WIFI_READY: /**< ESP32 WiFi ready */
 		Serial.println("ESP32 WiFi ready ");

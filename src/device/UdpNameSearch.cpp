@@ -14,7 +14,7 @@ UdpNameSearch::UdpNameSearch(UDPSimplePacketComs* connection,String * name) {
 	myconnection->connect();
 	readController = new AbstractPacketType(1917, 64);
 	for(int i=0;i<name->length();i++){
-		readController->downstream[i]=name->charAt(i);
+		readController->getDownstreamBytes()[i]=name->charAt(i);
 	}
 	myconnection->addPollingPacket(readController);
 }

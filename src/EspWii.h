@@ -12,7 +12,8 @@
 #include "controller/AbstractController.h"
 
 //#include <controller/ControlFactory.h>
-void launchControllerServer(const char * myssid, const char * mypwd,PacketEventAbstract * eventImplementation ) ;
+void launchControllerServer() ;
+
 void addServer(PacketEventAbstract * eventImplementation );
 void setNameUdpDevice(String *robot );
 void launchControllerReciver(const char * ssid, const char * pwd,String * controllerName);
