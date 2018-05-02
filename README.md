@@ -61,7 +61,7 @@ Clear all faults on the robot. No data is transmitted, but the state of the robo
 | upstream Bytes |4 | 0 |
 | Contents upstream |1936 | ---|
 
-An order is placed with the robot. The first 3 values are the pickup location, followed by the x and Z values in MM of the shelf where the pallet is located. THe second 3 values are the drop off location, followed by the X and Z values in MM of the shelf where the pallet is to be deposited. 
+An order is placed with the robot. The first 3 values are the pickup location, followed by the x and Z values in MM of the shelf where the pallet is located. The second 3 values are the drop off location, followed by the X and Z values in MM of the shelf where the pallet is to be deposited. 
 
 ### Get Location 
 | |ID | float |float |float |float |float |float |float |float |float |
