@@ -35,3 +35,11 @@ Request the status of the robot. The byte value represents the robot state.
 | Heading to Dropoff | 3 |
 | Dropping off | 4 |
 | Heading to safe zone| 5 |
+| Fault: failed pickup| 6 |
+| Fault: failed dropoff| 7 |
+| Fault: excessive load| 8 |
+| Fault: obstructed path| 9 |
+
+
+
+
