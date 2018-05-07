@@ -52,11 +52,17 @@ void wifiOnConnect() {
 //when wifi disconnects
 void wifiOnDisconnect() {
 	if (useClient) {
-		Serial.println("STA Disconnected");
-		delay(1000);
-		WiFi.begin(wifiSSID.c_str(), wifiPassword.c_str());
+		WiFi.mode(WIFI_MODE_APSTA);
+		WiFi.softAP(ssid, passwd);
+		Serial.println("AP Started");
+		Serial.print("AP SSID: ");
+		Serial.println(ssid);
+		Serial.print("AP IPv4: ");
+		Serial.println(WiFi.softAPIP());
+		useClient=false;
 	}
 }
+
 void WiFiEvent(WiFiEvent_t event) {
 	switch (event) {
 
@@ -176,18 +182,14 @@ void launchControllerReciver(const char * myssid, const char * mypwd,String * co
 	if (wifiSSID != "none"){
 		useClient = true;
 	}else{
-		WiFi.mode(WIFI_MODE_APSTA);
-		WiFi.softAP(ssid, passwd);
-		Serial.println("AP Started");
-		Serial.print("AP SSID: ");
-		Serial.println(ssid);
-		Serial.print("AP IPv4: ");
-		Serial.println(WiFi.softAPIP());
+		wifiOnDisconnect();
 
 	}
 	state=Boot;
 
 }
+
+
 void loopReciver() {
 	//wifiSSID, wifiPassword;
 	if(state != HaveSSIDSerial){
