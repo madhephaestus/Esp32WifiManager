@@ -7,9 +7,9 @@ A framework for controlling one ESP from another using various Wii accessories.
 | |ID | bytes |
 |--- |--- | --- |
 | downstream  Bytes |4 | 60 |
-| Contents downstream |1917 | String of Name or \* |
+| Contents downstream |1776 | String of Name or \* |
 | upstream  Bytes |4 | 60 |
-| Contents upstream |1917 | String of Name|
+| Contents upstream |1776 | String of Name|
 
 This checks the device to see if the name of the device matched a given name. If the name matches a packet is returned with the device name in its contents. If the name does not match, no packet is returned. 
 
