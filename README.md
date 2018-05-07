@@ -64,12 +64,20 @@ Clear all faults on the robot. No data is transmitted, but the state of the robo
 An order is placed with the robot. The first 3 values are the pickup location, followed by the x and Z values in MM of the shelf where the pallet is located. The second 3 values are the drop off location, followed by the X and Z values in MM of the shelf where the pallet is to be deposited. 
 
 ### Get Location 
+| |ID | float |float |float |float |float |float |float |float |
+|--- |--- | --- |--- | --- |--- | --- | --- |--- | --- | 
+| downstream Bytes |4 | 0 |
+| Contents downstream |1994 | --- |
+| upstream Bytes |4 | 4 | 4 | 4 | 4 | 4 | 4 |4 | 4 |
+| Contents upstream |1994 | X Location | Y Location | Z Location | azimuth | elevation | tilt | bounding cylinder radius | bounding cylinder height | 
+
+Request for the position and orentation of the robot. Location is in MM from the loading point in location 0 to the center bottom of the bounding cylinder of the robot. The size of the robot is reported in MM measured in positive values from center bottom of the bounding cylinder that envelops the robot. The center is defined as the turning center of the robot. The radius is the distance to the furthest point on the robot from the turning center. Maximum radius is 100mm. Direction of travil is +X in the robots coordinate frame.
+
+### Direct Drive
 | |ID | float |float |float |float |float |float |float |float |float |
 |--- |--- | --- |--- | --- |--- | --- | --- |--- | --- | --- |
 | downstream Bytes |4 | 0 |
 | Contents downstream |1994 | --- |
 | upstream Bytes |4 | 4 | 4 | 4 | 4 | 4 | 4 |4 | 4 | 4 |
-| Contents upstream |1994 | X Location | Y Location | Z Location | azimuth | elevation | tilt | size x | size y | size z |
-
-Request for the position and orentation of the robot. Location is in MM from the loading point in location 0 to the rear right corner of the bounding rectangle of the robot. The size of the robot is reported in MM measured in positive values from the rear right corner of the bounding box that envelops the robot. 
+| Contents upstream |1994 | delta X Location | delta Y Location |delta  Z Location | delta azimuth | delta elevation | delta tilt |
 
