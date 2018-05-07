@@ -18,12 +18,11 @@ enum ControllerManager {
 	WaitForSearchToFinish,
 	ShutdownSearch,
 	connectControllers,
-	updateControllers
+	updateControllers,HaveSSIDSerial
 };
 static const char * ssid = NULL;
 static const char * passwd = NULL;
 static String * controllerNamePointer = NULL;
-static WiFiServer server(80);
 static Preferences preferences;
 static volatile bool wifi_connected = false;
 static String wifiSSID, wifiPassword;
@@ -152,96 +151,6 @@ void WiFiEvent(WiFiEvent_t event) {
 	}
 }
 
-//while wifi is connected
-void wifiConnectedLoop() {
-	//Serial.print("RSSI: ");
-	//Serial.println(WiFi.RSSI());
-	//delay(1000);
-}
-
-void wifiDisconnectedLoop() {
-	WiFiClient client = server.available();   // listen for incoming clients
-
-	if (client) {                             // if you get a client,
-		Serial.println("New client");     // print a message out the serial port
-		String currentLine = ""; // make a String to hold incoming data from the client
-		while (client.connected()) {        // loop while the client's connected
-			if (client.available()) { // if there's bytes to read from the client,
-				char c = client.read();             // read a byte, then
-				Serial.write(c);              // print it out the serial monitor
-				if (c == '\n') {           // if the byte is a newline character
-
-					// if the current line is blank, you got two newline characters in a row.
-					// that's the end of the client HTTP request, so send a response:
-					if (currentLine.length() == 0) {
-						// HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
-						// and a content-type so the client knows what's coming, then a blank line:
-						client.println("HTTP/1.1 200 OK");
-						client.println("Content-type:text/html");
-						client.println();
-
-						// the content of the HTTP response follows the header:
-						client.print(
-								"<form method='get' action='a'><label>SSID: </label><input name='ssid' length=32><input name='pass' length=64><input type='submit'></form>");
-
-						// The HTTP response ends with another blank line:
-						client.println();
-						// break out of the while loop:
-						break;
-					} else {    // if you got a newline, then clear currentLine:
-						currentLine = "";
-					}
-				} else if (c != '\r') { // if you got anything else but a carriage return character,
-					currentLine += c;    // add it to the end of the currentLine
-					continue;
-				}
-
-				if (currentLine.startsWith("GET /a?ssid=")) {
-					//Expecting something like:
-					//GET /a?ssid=blahhhh&pass=poooo
-					Serial.println("");
-					Serial.println("Cleaning old WiFi credentials from ESP32");
-					// Remove all preferences under opened namespace
-					preferences.clear();
-
-					String qsid;
-					qsid = currentLine.substring(12, currentLine.indexOf('&')); //parse ssid
-					Serial.println(qsid);
-					Serial.println("");
-					String qpass;
-					qpass = currentLine.substring(
-							currentLine.lastIndexOf('=') + 1,
-							currentLine.lastIndexOf(' ')); //parse password
-					Serial.println(qpass);
-					Serial.println("");
-
-					preferences.begin("wifi", false); // Note: Namespace name is limited to 15 chars
-					Serial.println("Writing new ssid");
-					preferences.putString("ssid", qsid);
-
-					Serial.println("Writing new pass");
-					preferences.putString("password", qpass);
-					delay(300);
-					preferences.end();
-
-					client.println("HTTP/1.1 200 OK");
-					client.println("Content-type:text/html");
-					client.println();
-
-					// the content of the HTTP response follows the header:
-					client.print("<h1>OK! Restarting in 5 seconds...</h1>");
-					client.println();
-					Serial.println("Restarting in 5 seconds...");
-					delay(5000);
-					ESP.restart();
-				}
-			}
-		}
-		// close the connection:
-		client.stop();
-		Serial.println("client disconnected");
-	}
-}
 
 /**
  * Public functions
@@ -251,11 +160,11 @@ void launchControllerReciver(const char * myssid, const char * mypwd,String * co
 	passwd = mypwd;
 	controllerNamePointer=controllerName;
 	Serial.begin(115200);
-	Serial.println("Waiting 10 seconds for WiFi to clear");
+	Serial.println("Waiting 2 seconds for WiFi to clear");
 	WiFi.disconnect(true);
-	delay(5000); // wait for WiFI stack to fully timeout
-	Serial.println("still waiting 5 seconds for WiFi to clear");
-	delay(5000); // wait for WiFI stack to fully timeout
+	delay(1000); // wait for WiFI stack to fully timeout
+	Serial.println("still waiting 1 seconds for WiFi to clear");
+	delay(1000); // wait for WiFI stack to fully timeout
 
 	WiFi.onEvent(WiFiEvent);
 	WiFi.mode(WIFI_MODE_APSTA);
@@ -277,20 +186,31 @@ void launchControllerReciver(const char * myssid, const char * mypwd,String * co
 	preferences.end();
 	if (wifiSSID != "none")
 		useClient = true;
-	if (useClient) {
-		Serial.print("Stored SSID: ");
-		Serial.println(wifiSSID);
-
-		WiFi.begin(wifiSSID.c_str(), wifiPassword.c_str());
-	}
-	server.begin();
+	state=Boot;
 
 }
 void loopReciver() {
+	//wifiSSID, wifiPassword;
+	if(state != HaveSSIDSerial){
+		if(Serial.available()>0){
+			wifiSSID=Serial.readString();
+			state=HaveSSIDSerial;
+			Serial.println("New ssid: "+wifiSSID);
+			Serial.println("New password: ");
+
+		}
+	}
 	switch (state) {
 	case Boot:
 		state = WaitForClients;
 		Serial.println("Boot controller factory");
+		if (useClient) {
+			Serial.print("Stored SSID: ");
+			Serial.println(wifiSSID);
+			WiFi.disconnect(true);
+			delay(1000); // wait for WiFI stack to fully timeout
+			WiFi.begin(wifiSSID.c_str(), wifiPassword.c_str());
+		}
 		break;
 	case WaitForClients:
 		if (wifi_remote_Connected) {
@@ -339,15 +259,28 @@ void loopReciver() {
 		}
 
 		break;
+	case HaveSSIDSerial:
+		if(Serial.available()>0){
+			wifiPassword=Serial.readString();
+			preferences.clear();
+			preferences.begin("wifi", false); // Note: Namespace name is limited to 15 chars
+			Serial.println("Writing new ssid "+wifiSSID);
+			preferences.putString("ssid", wifiSSID);
+
+			Serial.println("Writing new pass *****");
+			preferences.putString("password", wifiPassword);
+			delay(300);
+			preferences.end();
+			state=Boot;
+			useClient = true;
+
+		}
+		break;
 	}
 	if(local!=NULL){
 		local->loop();
 	}
-	if (wifi_connected) {
-		wifiConnectedLoop();
-	} else {
-		wifiDisconnectedLoop();
-	}
+
 }
 AbstractController * getController(int id) {
 	if(id==0){

@@ -29,7 +29,7 @@ class NameCheckerServer: public PacketEventAbstract {
 public:
 	// Packet ID needs to be set
 	NameCheckerServer(String *robot):
-		PacketEventAbstract(1917)// Address of this event
+		PacketEventAbstract(1776)// Address of this event
 	{
 		namePointer=robot;
 	}
@@ -125,7 +125,7 @@ void loopServer() {
 			Serial.println("Writing new ssid "+networkNameServer);
 			preferences.putString("ssid", networkNameServer);
 
-			Serial.println("Writing new pass "+networkPswdServer);
+			Serial.println("Writing new pass ****");
 			preferences.putString("password", networkPswdServer);
 			delay(300);
 			preferences.end();
