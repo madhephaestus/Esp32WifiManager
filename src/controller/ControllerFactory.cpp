@@ -23,6 +23,7 @@ enum ControllerManager {
 static const char * ssid = NULL;
 static const char * passwd = NULL;
 static String * controllerNamePointer = NULL;
+UDPSimplePacketComs * coms;
 static Preferences preferences;
 static volatile bool wifi_connected = false;
 static String wifiSSID, wifiPassword;
@@ -167,25 +168,23 @@ void launchControllerReciver(const char * myssid, const char * mypwd,String * co
 	delay(1000); // wait for WiFI stack to fully timeout
 
 	WiFi.onEvent(WiFiEvent);
-	WiFi.mode(WIFI_MODE_APSTA);
-	WiFi.softAP(ssid, passwd);
-	Serial.println("AP Started");
-	Serial.print("AP SSID: ");
-	Serial.println(ssid);
-	Serial.print("AP IPv4: ");
-	Serial.println(WiFi.softAPIP());
-	broadcast = WiFi.softAPIP();
-	broadcast[3] = 255;
-	UDPSimplePacketComs * coms = new UDPSimplePacketComs(&broadcast);
-	pinger = new UdpNameSearch(coms,controllerName);
-	pinger->oneShotMode();
 
 	preferences.begin("wifi", false);
 	wifiSSID = preferences.getString("ssid", "none");           //NVS key ssid
 	wifiPassword = preferences.getString("password", "none"); //NVS key password
 	preferences.end();
-	if (wifiSSID != "none")
+	if (wifiSSID != "none"){
 		useClient = true;
+	}else{
+		WiFi.mode(WIFI_MODE_APSTA);
+		WiFi.softAP(ssid, passwd);
+		Serial.println("AP Started");
+		Serial.print("AP SSID: ");
+		Serial.println(ssid);
+		Serial.print("AP IPv4: ");
+		Serial.println(WiFi.softAPIP());
+
+	}
 	state=Boot;
 
 }
@@ -213,8 +212,22 @@ void loopReciver() {
 		}
 		break;
 	case WaitForClients:
-		if (wifi_remote_Connected) {
+		if (wifi_remote_Connected||wifi_connected) {
 			state = BeginSearch;
+			if (!useClient)
+				broadcast = WiFi.softAPIP();
+			else{
+				broadcast=WiFi.localIP();
+			}
+			broadcast[3] = 255;
+			if(pinger==NULL){
+				Serial.println("Pinnger built");
+				coms = new UDPSimplePacketComs(&broadcast,useClient);
+				pinger = new UdpNameSearch(coms,controllerNamePointer);
+			}else{
+				coms->targetDevice->fromString(broadcast.toString());
+			}
+
 		}
 		//Serial.println("WaitForClients");
 		break;
@@ -222,7 +235,7 @@ void loopReciver() {
 		searchStartTime = millis();
 		pinger->oneShotMode();
 		state = WaitForSearchToFinish;
-		Serial.println("BeginSearch controller factory, Expect Timeouts");
+		Serial.println("BeginSearch controller factory, Expect Timeouts "+coms->targetDevice->toString());
 		break;
 	case WaitForSearchToFinish:
 		pinger->loop();
@@ -240,17 +253,22 @@ void loopReciver() {
 		Serial.println("ShutdownSearch controller factory");
 		break;
 	case connectControllers:
-		Serial.println("Search Finished, found : "+String(FactoryAvailibleIPs->size()));
-		for (int i=0;i<FactoryAvailibleIPs->size();i++) {
-			IPAddress* tmp =FactoryAvailibleIPs->at(i) ;
-			UDPSimplePacketComs * tmpCom = new UDPSimplePacketComs(tmp);
-			Serial.print("Com's built");
-			UdpController *controller =new UdpController(tmpCom);
-			controllerList.push_back(controller);
-			Serial.print("\r\nController built on: ");
-			Serial.print(tmp[0]);
+		if(FactoryAvailibleIPs->size()>0){
+			Serial.println("Search Finished, found : "+String(FactoryAvailibleIPs->size()));
+			for (int i=0;i<FactoryAvailibleIPs->size();i++) {
+				IPAddress* tmp =FactoryAvailibleIPs->at(i) ;
+				UDPSimplePacketComs * tmpCom = new UDPSimplePacketComs(tmp,useClient);
+				Serial.print("Com's built");
+				UdpController *controller =new UdpController(tmpCom);
+				controllerList.push_back(controller);
+				Serial.print("\r\nController built on: ");
+				Serial.print(tmp[0]);
+			}
+
+			state = updateControllers;
+		}else{
+			state = BeginSearch;
 		}
-		state = updateControllers;
 		break;
 	case updateControllers:
 		//Serial.println("checkForFailures");

@@ -67,7 +67,7 @@ void GameLogic::run(void) {
 	switch (state) {
 	case powerup:
 		digitalWrite(robot->getDebugLEDPin(), 1);
-		Serial.println("\r\nwaiting for Controller to connect init...");
+		//Serial.println("\r\nwaiting for Controller to connect init...");
 		if (controller == NULL) {
 			controller = getController(controllerIndex);
 			return; // try back later

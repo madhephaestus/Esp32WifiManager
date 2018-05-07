@@ -14,12 +14,15 @@ std::vector<IPAddress*> * getAvailibleIPs(){
 	return &availibleIPs;
 }
 
-UDPSimplePacketComs::UDPSimplePacketComs(IPAddress* target) {
+UDPSimplePacketComs::UDPSimplePacketComs(IPAddress* target,boolean useClient) {
 	targetDevice = new IPAddress();
 	targetDevice->fromString(target->toString());
 	if (udp == NULL) {
 		udp = new WiFiUDP();
-		udp->begin(WiFi.softAPIP(), SIMPLE_PACKET_UDP_PORT);
+		if(useClient)
+			udp->begin(WiFi.localIP(), SIMPLE_PACKET_UDP_PORT);
+		else
+			udp->begin(WiFi.softAPIP(), SIMPLE_PACKET_UDP_PORT);
 		connected = true;
 	}
 }

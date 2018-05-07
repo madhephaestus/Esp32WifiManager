@@ -18,7 +18,7 @@ class UDPSimplePacketComs: public AbstractSimpleComsDevice {
 
 public:
 	IPAddress* targetDevice;
-	UDPSimplePacketComs(IPAddress* target);
+	UDPSimplePacketComs(IPAddress* target,boolean useClient);
 
 	~UDPSimplePacketComs() {
 		disconnect();

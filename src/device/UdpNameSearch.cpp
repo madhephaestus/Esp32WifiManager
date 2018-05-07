@@ -12,7 +12,7 @@ UdpNameSearch::UdpNameSearch(UDPSimplePacketComs* connection,String * name) {
 	myName=name;
 	myconnection = connection;
 	myconnection->connect();
-	readController = new AbstractPacketType(1917, 64);
+	readController = new AbstractPacketType(1776, 64);
 	for(int i=0;i<name->length();i++){
 		readController->getDownstreamBytes()[i]=name->charAt(i);
 	}
