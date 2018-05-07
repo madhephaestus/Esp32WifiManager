@@ -74,10 +74,11 @@ An order is placed with the robot. The first 3 values are the pickup location, f
 Request for the position and orentation of the robot. Location is in MM from the loading point in location 0 to the center bottom of the bounding cylinder of the robot. The size of the robot is reported in MM measured in positive values from center bottom of the bounding cylinder that envelops the robot. The center is defined as the turning center of the robot. The radius is the distance to the furthest point on the robot from the turning center. Maximum radius is 100mm. Direction of travil is +X in the robots coordinate frame.
 
 ### Direct Drive
-| |ID | float |float |float |float |float |float |float |float |float |
-|--- |--- | --- |--- | --- |--- | --- | --- |--- | --- | --- |
+| |ID | float |float |float |float |float |float |float |
+|--- |--- | --- |--- | --- |--- | --- | --- |--- |
 | downstream Bytes |4 | 0 |
-| Contents downstream |1994 | --- |
-| upstream Bytes |4 | 4 | 4 | 4 | 4 | 4 | 4 |4 | 4 | 4 |
-| Contents upstream |1994 | delta X Location | delta Y Location |delta  Z Location | delta azimuth | delta elevation | delta tilt |
+| Contents downstream |1786  | --- |
+| upstream Bytes |4 | 4 | 4 | 4 | 4 | 4 | 4 |4 |
+| Contents upstream |1786  | delta X Location | delta Y Location |delta  Z Location | delta azimuth | delta elevation | delta tilt | # Miliseconds this update should take |
 
+This is a command to drive a robot directly. The values represent a relative motion from current location. +X is forward for the robot.Angle values are in degrees and translation values are in Milimeters.  Azimuth values range from -180 to 180 with 0 along the robots X dimention. Elevation values are rotation values from -90 to 90 about the Y dimention with 0 being along the x dimenttion. Tilt values are rotations from -180 to 180 about the X dimention with 0 being aligned with the X-Y plane.
