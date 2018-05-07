@@ -76,9 +76,9 @@ Request for the position and orentation of the robot. Location is in MM from the
 ### Direct Drive
 | |ID | float |float |float |float |float |float |float |
 |--- |--- | --- |--- | --- |--- | --- | --- |--- |
-| downstream Bytes |4 | 0 |
-| Contents downstream |1786  | --- |
-| upstream Bytes |4 | 4 | 4 | 4 | 4 | 4 | 4 |4 |
+| downstream Bytes |4 | 4 | 4 | 4 | 4 | 4 | 4 |4 |
 | Contents upstream |1786  | delta X Location | delta Y Location |delta  Z Location | delta azimuth | delta elevation | delta tilt | # Miliseconds this update should take |
+| upstream Bytes |4 | 0 |
+| Contents downstream |1786  | --- |
 
 This is a command to drive a robot directly. The values represent a relative motion from current location. +X is forward for the robot.Angle values are in degrees and translation values are in Milimeters.  Azimuth values range from -180 to 180 with 0 along the robots X dimention. Elevation values are rotation values from -90 to 90 about the Y dimention with 0 being along the x dimenttion. Tilt values are rotations from -180 to 180 about the X dimention with 0 being aligned with the X-Y plane.
