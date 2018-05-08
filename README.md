@@ -3,7 +3,9 @@ A framework for controlling one ESP from another using various Wii accessories.
 
 # Known Commands
 
-## Get Name (All UDP devices)
+## All UDP devices
+
+### Get Name 
 | |ID | bytes |
 |--- |--- | --- |
 | downstream  Bytes |4 | 60 |
@@ -14,6 +16,18 @@ A framework for controlling one ESP from another using various Wii accessories.
 This checks the device to see if the name of the device matched a given name. If the name matches a packet is returned with the device name in its contents. If the name does not match, no packet is returned. 
 
 If the name requests ends with a \* charrecter then it wil be treated as a wildcard. Matches up to the \* will be returned. Name requests with just \* will always return the name of the device. 
+
+## Game Controller
+### State exchange
+
+| |ID | byte |byte |byte |byte |byte |byte |byte |byte |byte |byte |byte |byte |byte |byte |byte |byte |byte |byte |byte |byte |
+|--- |--- | --- |--- | --- |--- | --- | --- | --- |--- | --- |--- | --- | --- | --- |--- | --- |--- | --- | --- |--- |--- |
+| downstream Bytes |4 | 1 | 1 | 1 | 1 | 1 | 1 |1 | 1 | 1 | 1 | 1 | 1 |1 | 1 | 1 | 1 | 1 | 1 |1|1|
+| Contents downstream |1970 | Controller ID| JoyXLeft | JoyYLeft | JoyXRight | JoyYRight | TriggerLeft | TriggerRight |PadRight/PadLeft| PadDown/PadUp |--- |--- |ButtonX|ButtonY|ButtonA|ButtonB|ButtonMinus/getButtonPlus|ButtonHome|---|ButtonZLeft|ButtonZRight|
+| upstream Bytes |4 | 60 |
+| Contents upstream |1970 | Byte data to be printed by the game controller server|
+
+This command exchanges data with a game controller. WHen accessed remotely the ID is seperated out from the data. Data for a given axis starts at index 0 with JoyXLeft and ending with index 18 for ButtonZRight.
 
 ## Warehouse Robot
 
