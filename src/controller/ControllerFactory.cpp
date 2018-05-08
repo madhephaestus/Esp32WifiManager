@@ -241,7 +241,7 @@ void loopReciver() {
 		break;
 	case WaitForSearchToFinish:
 		pinger->loop();
-		if ((millis() - searchStartTime) > 10000) {
+		if ((millis() - searchStartTime) > 1000) {
 			state = ShutdownSearch;
 		}
 		//Serial.println("WaitForSearchToFinish");

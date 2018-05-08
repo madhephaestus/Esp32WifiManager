@@ -9,7 +9,7 @@
 
 void WiiClassicServerEvent::event(float * buffer) {
 	//Serial.print("\r\nClassic read");
-	classic->readData();
+	//classic->readData();
 	//classic->printInputs();
 	if(getControllerStatusStartup()){
 		setControllerStatusStartup(true);

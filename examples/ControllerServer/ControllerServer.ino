@@ -3,7 +3,7 @@
 #include <WiFi.h>
 #include <EspWii.h>
 #include <ESP32Servo.h>
-
+#include <Wire.h>
 #define CONTROLLER_ID 2
 #define TEAMNUMBER    22
 String * controllerName = new String("GameController_"+String(TEAMNUMBER));
