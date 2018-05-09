@@ -75,7 +75,7 @@ public:
 };
 class DirectDrive: public PacketEventAbstract {
 	MyRobot* robotPointer;
-
+	float sessionIDPRevious=0;
 public:
 	// Packet ID needs to be set
 	DirectDrive(MyRobot* robot) :
@@ -97,13 +97,16 @@ public:
 		float milisecondsFOrTrasnition = buffer[6];
 		float sessionID = buffer[7];
 		float status = 0;
-		Serial.println(
-				"Direct Drive Recived : " + String(deltax) + " "
-						+ String(deltaY) + " " + String(deltaZ) + "  "
-						+ String(deltaAzimuth) + " " + String(deltaElevation)
-						+ " " + String(deltaTilt)) + " "
-				+ String(milisecondsFOrTrasnition) + " " + String(sessionID)
-				+ " " + String(status);
+		if(sessionIDPRevious!=sessionID){
+			sessionIDPRevious=sessionID;
+			Serial.println(
+					"Direct Drive Recived : " + String(deltax) + " "
+							+ String(deltaY) + " " + String(deltaZ) + "  "
+							+ String(deltaAzimuth) + " " + String(deltaElevation)
+							+ " " + String(deltaTilt)) + " "
+					+ String(milisecondsFOrTrasnition) + " " + String(sessionID)
+					+ " " + String(status);
+		}
 		buffer[0] = status;
 	}
 };
@@ -131,12 +134,12 @@ public:
 		buffer[6] = 100;	// X size
 		buffer[7] = 100;	// Y size
 		buffer[8] = 100;	// Z size
-		Serial.println(
-				"Location request " + String(buffer[0]) + " "
-						+ String(buffer[1]) + " " + String(buffer[2]) + " "
-						+ String(buffer[3]) + " " + String(buffer[4]) + " "
-						+ String(buffer[5]) + " " + String(buffer[6]) + " "
-						+ String(buffer[7]) + " " + String(buffer[8]));
+//		Serial.println(
+//				"Location request " + String(buffer[0]) + " "
+//						+ String(buffer[1]) + " " + String(buffer[2]) + " "
+//						+ String(buffer[3]) + " " + String(buffer[4]) + " "
+//						+ String(buffer[5]) + " " + String(buffer[6]) + " "
+//						+ String(buffer[7]) + " " + String(buffer[8]));
 	}
 };
 
