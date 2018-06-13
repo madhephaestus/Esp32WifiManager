@@ -5,11 +5,11 @@
  *      Author: hephaestus
  */
 
-#include "EspWii.h"
-#include <WiiChuck.h>
+#include <Esp32SimplePacketComs.h>
 #include <SimplePacketComs.h>
 #include <WiFi.h>
 #include <Preferences.h>
+#include <server/UDPSimplePacket.h>
 
 //Are we currently connected?
 //The udp library class

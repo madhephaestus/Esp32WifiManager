@@ -3,7 +3,7 @@
 #include <SimplePacketComs.h>
 #include <WiFi.h>
 #include <WiFiUdp.h>
-
+#include <device/UDPSimplePacketComs.hpp>
 class UDPSimplePacket: public SimplePacketComsAbstract {
 private:
 	WiFiUDP * udp;
