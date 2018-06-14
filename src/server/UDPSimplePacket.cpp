@@ -73,6 +73,7 @@ void UDPSimplePacket::WiFiEvent(WiFiEvent_t event) {
 	case SYSTEM_EVENT_STA_GOT_IP:/**< ESP32 station got IP from connected AP */
 		//initializes the UDP state
 		//This initializes the transfer buffer
+		//Serial.println("UDPSimplePacket::WiFiEvent");
 		udp->begin(WiFi.localIP(), SIMPLE_PACKET_UDP_PORT);
 		connected = true;
 		break;
