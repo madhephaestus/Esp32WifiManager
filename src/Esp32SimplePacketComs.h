@@ -1,3 +1,5 @@
+#if !defined(ESP32SIMPLEHEADER)
+#define ESP32SIMPLEHEADER
 
 #include <stdint.h>
 #include <stdio.h>
@@ -16,3 +18,4 @@ void loopServer();
 void loopReciver();
 
 
+#endif

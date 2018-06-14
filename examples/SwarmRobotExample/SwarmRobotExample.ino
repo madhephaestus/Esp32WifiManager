@@ -1,9 +1,7 @@
 #include <SimplePacketComs.h>
-#include <WiiChuck.h>
 #include <WiFi.h>
-#include <EspWii.h>
-#include <ESP32Servo.h>
 #include <PacketEvent.h>
+#include <Esp32SimplePacketComs.h>
 
 enum RobotStatus {
 	Ready_for_new_task = 0,

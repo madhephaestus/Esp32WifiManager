@@ -1,12 +1,25 @@
 #include "UDPSimplePacket.h"
 
+static UDPSimplePacket * simple=NULL;
+void WiFiEventServer(WiFiEvent_t event);
+
+
 UDPSimplePacket::UDPSimplePacket(WiFiUDP * incomingUdp) {
 	udp = incomingUdp;
 	connected = false;
+	if(simple ==NULL){
+		simple=this;
+		WiFi.onEvent(WiFiEventServer);
+	}
 }
 UDPSimplePacket::UDPSimplePacket() {
 	udp = new WiFiUDP();
 	connected = false;
+	if(simple ==NULL){
+		simple=this;
+		WiFi.onEvent(WiFiEventServer);
+	}
+
 }
 
 /**
@@ -74,5 +87,11 @@ void UDPSimplePacket::WiFiEvent(WiFiEvent_t event) {
 	default:
 		break;
 	}
+}
+
+void WiFiEventServer(WiFiEvent_t event) {
+	//Pass the event to the UDP Simple packet server
+	if (simple != NULL)
+		simple->WiFiEvent(event);
 }
 
