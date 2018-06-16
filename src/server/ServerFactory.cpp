@@ -13,9 +13,9 @@
 
 //Are we currently connected?
 //The udp library class
-UDPSimplePacket * simple = NULL;
+static UDPSimplePacket * simple = NULL;
 
-WifiManager manager;
+static WifiManager manager;
 
 void launchControllerServer() {
 	if (simple == NULL) {
