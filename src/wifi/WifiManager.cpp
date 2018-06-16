@@ -10,7 +10,7 @@ static Preferences preferences;
 void WiFiEventWifiManager(WiFiEvent_t event);
 static WifiManager * staticRef = NULL;
 static enum connectionState state = firstStart;
-
+#define rescanIncrement 2
 WifiManager::WifiManager() {
 
 }
@@ -71,7 +71,7 @@ void WifiManager::connectToWiFi(const char * ssid, const char * pwd) {
 
 	Serial.println("Waiting for WIFI connection...");
 	timeOfLastConnect = millis();
-	timeOfLastDisconnect = millis() - 5;
+	timeOfLastDisconnect = millis() - rescanIncrement;
 	String mac = WiFi.macAddress();
 	Serial.println("Mac Address: " + mac);
 }
@@ -185,7 +185,7 @@ void WifiManager::loop() {
 				state = reconnect;
 				printState();
 				connectionAttempts++;
-				if (connectionAttempts > 5) {
+				if (connectionAttempts > rescanIncrement) {
 					connectionAttempts = 0;
 					rescan();
 				}
@@ -228,7 +228,7 @@ void WiFiEventWifiManager(WiFiEvent_t event) {
 
 			Serial.println(
 					"WiFi lost connection, retry "
-							+ String(5 - staticRef->connectionAttempts));
+							+ String(rescanIncrement - staticRef->connectionAttempts));
 		}
 		break;
 	case SYSTEM_EVENT_WIFI_READY: /**< ESP32 WiFi ready */
