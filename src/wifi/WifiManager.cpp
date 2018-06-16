@@ -106,6 +106,11 @@ void WifiManager::rescan() {
 			for (int i = 0; i < n && myNetworkPresent == false; ++i) {
 				// Print SSID and RSSI for each network found
 				networkNameServer = WiFi.WiFiScanClass::SSID(i);
+				networkPswdServer = preferences.getString(
+										networkNameServer.c_str(), "none"); //NVS key password
+								if (networkPswdServer.compareTo("none") != 0) {
+									myNetworkPresent = true;
+								}
 				Serial.print(i + 1);
 				Serial.print(": ");
 				Serial.print(networkNameServer);
@@ -115,12 +120,6 @@ void WifiManager::rescan() {
 				Serial.println(
 						(WiFi.encryptionType(i) == WIFI_AUTH_OPEN) ? " " : "*");
 				delay(10);
-				networkPswdServer = preferences.getString(
-						networkNameServer.c_str(), "none"); //NVS key password
-				if (networkPswdServer.compareTo("none") != 0) {
-					myNetworkPresent = true;
-				}
-
 			}
 		}
 
@@ -153,11 +152,14 @@ void WifiManager::loop() {
 		break;
 	case InitialConnect:
 		preferences.begin("wifi", false); // Note: Namespace name is limited to 15 chars
-		if (preferences.getString(networkNameServer.c_str(), "none").compareTo(
-				networkPswdServer) != 0) {
+		if (preferences.getString("ssid", "none").compareTo(
+				networkNameServer) != 0) {
 			Serial.println("Writing new ssid " + networkNameServer);
 			preferences.putString("ssid", networkNameServer);
-
+			delay(300);
+		}
+		if (preferences.getString(networkNameServer.c_str(), "none").compareTo(
+				networkPswdServer) != 0) {
 			Serial.println("Writing new pass ****");
 			preferences.putString(networkNameServer.c_str(), networkPswdServer);
 			delay(300);
