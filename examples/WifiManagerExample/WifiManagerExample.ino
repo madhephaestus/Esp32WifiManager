@@ -13,4 +13,7 @@ void setup() {
 void loop() {
   // read the serial port for new passwords and maintain connections
   manager.loop();
+  if(manager.getState()==Connected){
+	  // use the Wifi Stack now connected
+  }
 }

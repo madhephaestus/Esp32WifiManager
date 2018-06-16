@@ -11,23 +11,31 @@
 #include <Preferences.h>
 #include <WiFi.h>
 
-enum connectionState {firstStart,Disconnected,Connected,HaveSSIDSerial, reconnect} ;
+enum connectionState {
+	firstStart,
+	Disconnected,
+	InitialConnect,
+	Connected,
+	HaveSSIDSerial,
+	reconnect
+};
 
 class WifiManager {
 public:
 	//boolean connected = false;
-	long timeOfLastDisconnect=0;
-	long timeOfLastConnect=0;
+	long timeOfLastDisconnect = 0;
+	long timeOfLastConnect = 0;
 	String networkNameServer;
 	String networkPswdServer;
-	enum connectionState state=firstStart ;
 	int connectionAttempts;
 	WifiManager();
 	virtual ~WifiManager();
 	void loop();
 	void setup();
-	void connectToWiFi(const char * ssid, const char * pwd) ;
+	void connectToWiFi(const char * ssid, const char * pwd);
 	void rescan();
+	void printState();
+	enum connectionState getState();
 };
 
 #endif /* LIBRARIES_ESP32SIMPLEPACKETCOMS_SRC_WIFI_WIFIMANAGER_H_ */

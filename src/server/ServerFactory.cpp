@@ -41,7 +41,7 @@ void setNameUdpDevice(String *robot) {
 
 void loopServer() {
 	manager.loop();
-	if (manager.state == Connected && simple != NULL) {
+	if (manager.getState() == Connected && simple != NULL) {
 
 		simple->server();
 	}

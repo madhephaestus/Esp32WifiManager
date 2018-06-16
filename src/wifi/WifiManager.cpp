@@ -9,27 +9,53 @@
 static Preferences preferences;
 void WiFiEventWifiManager(WiFiEvent_t event);
 static WifiManager * staticRef = NULL;
+static enum connectionState state = firstStart;
 
 WifiManager::WifiManager() {
-	if (staticRef == NULL) {
-		staticRef = this;
-	}
-	connectionAttempts=0;
+
 }
 
 WifiManager::~WifiManager() {
 	// TODO Auto-generated destructor stub
 }
+enum connectionState WifiManager::getState(){
+	return state;
+}
+void WifiManager::printState() {
+		switch (state) {
+		case firstStart:
+			Serial.println("WifiManager.getState()=firstStart");
+			break;
+		case Disconnected:
+			Serial.println("WifiManager.getState()=Disconnected");
+			break;
+		case InitialConnect:
+			Serial.println("WifiManager.getState()=InitialConnect");
+			break;
+		case Connected:
+			Serial.println("WifiManager.getState()=Connected");
+			break;
+		case HaveSSIDSerial:
+			Serial.println("WifiManager.getState()=HaveSSIDSerial");
+			break;
+		case reconnect:
+			Serial.println("WifiManager.getState()=reconnect");
+			break;
+		}
+	}
 
 void WifiManager::setup() {
 	Serial.begin(115200);
 
-	preferences.begin("wifi", false);
+	preferences.begin("wifi", true);
 	networkNameServer = preferences.getString("ssid", "none");    //NVS key ssid
 	networkPswdServer = preferences.getString(networkNameServer.c_str(),
 			"none"); //NVS key password
 	preferences.end();
 	state = reconnect;
+	printState();
+	staticRef = this;
+	connectionAttempts=0;
 	WiFi.onEvent(WiFiEventWifiManager);
 	connectionAttempts=1;
 
@@ -45,12 +71,12 @@ void WifiManager::connectToWiFi(const char * ssid, const char * pwd) {
 
 	Serial.println("Waiting for WIFI connection...");
 	timeOfLastConnect = millis();
-	timeOfLastDisconnect = millis();
+	timeOfLastDisconnect = millis()-5;
 	String mac = WiFi.macAddress();
 	Serial.println("Mac Address: " + mac);
 }
 void WifiManager::rescan(){
-	preferences.begin("wifi", false);
+	preferences.begin("wifi", true);
 	networkNameServer = preferences.getString("ssid", "none");    //NVS key ssid
 	networkPswdServer = preferences.getString(networkNameServer.c_str(),
 			"none"); //NVS key password
@@ -100,6 +126,7 @@ void WifiManager::rescan(){
 
 		Serial.println("");
 	}
+
 	preferences.end();
 }
 void WifiManager::loop() {
@@ -107,6 +134,7 @@ void WifiManager::loop() {
 		if (Serial.available() > 0) {
 			networkNameServer = Serial.readString();
 			state = HaveSSIDSerial;
+			printState();
 			Serial.println("New ssid: " + networkNameServer);
 			Serial.println("New password: ");
 
@@ -114,52 +142,13 @@ void WifiManager::loop() {
 	}
 	switch (state) {
 	case firstStart:
-		state = Connected;
-		//no break
-	case Connected:
-		break;
-	case Disconnected:
-		if ((millis() - timeOfLastConnect) > 5000)
-			if ((millis() - timeOfLastDisconnect) > 6000){
-				state = reconnect;
-				connectionAttempts++;
-				if(connectionAttempts>5){
-					connectionAttempts=0;
-					rescan();
-				}
-			}
-		break;
-	case reconnect:
-		Serial.println("connect to WiFi network");
-		//Connect to the WiFi network
-		connectToWiFi(networkNameServer.c_str(), networkPswdServer.c_str());
-		state = Disconnected;
-		break;
-	case HaveSSIDSerial:
-		if (Serial.available() > 0) {
-			networkPswdServer = Serial.readString();
-			state = reconnect;
-			preferences.begin("wifi", false); // Note: Namespace name is limited to 15 chars
-			Serial.println("Writing new ssid " + staticRef->networkNameServer);
-			preferences.putString("ssid", staticRef->networkNameServer);
+		//staticRef->printState();
 
-			Serial.println("Writing new pass ****");
-			preferences.putString(staticRef->networkNameServer.c_str(),
-					staticRef->networkPswdServer);
-			delay(300);
-			preferences.end();
-		}
+		state = InitialConnect;
+		printState();
 		break;
-	}
-}
-void WiFiEventWifiManager(WiFiEvent_t event) {
-	//Pass the event to the UDP Simple packet server
-	switch (event) {
-	case SYSTEM_EVENT_STA_GOT_IP:/**< ESP32 station got IP from connected AP */
-		//When connected set
-		Serial.print("WiFi connected! IP address: ");
-		Serial.println(WiFi.localIP());
-		staticRef->state = Connected;
+	case InitialConnect:
+		printState();
 		preferences.begin("wifi", false); // Note: Namespace name is limited to 15 chars
 		Serial.println("Writing new ssid " + staticRef->networkNameServer);
 		preferences.putString("ssid", staticRef->networkNameServer);
@@ -169,12 +158,63 @@ void WiFiEventWifiManager(WiFiEvent_t event) {
 				staticRef->networkPswdServer);
 		delay(300);
 		preferences.end();
+		state = Connected;
+		printState();
+		break;
+	case Connected:
+		//printState();
+
+		break;
+	case Disconnected:
+		//printState();
+
+		if ((millis() - timeOfLastConnect) > 5000)
+			if (( timeOfLastDisconnect-1000) > timeOfLastConnect){
+				Serial.println("Timeouts for connection wait, reconnecting last connected: "+String(timeOfLastConnect)+" last disconnected: "+String(timeOfLastDisconnect));
+				state = reconnect;
+				printState();
+				connectionAttempts++;
+				if(connectionAttempts>5){
+					connectionAttempts=0;
+					rescan();
+				}
+			}
+		break;
+
+	case reconnect:
+		Serial.println("connect to WiFi network");
+		//Connect to the WiFi network
+		connectToWiFi(networkNameServer.c_str(), networkPswdServer.c_str());
+		state = Disconnected;
+		printState();
+		break;
+	case HaveSSIDSerial:
+		if (Serial.available() > 0) {
+			networkPswdServer = Serial.readString();
+			state = reconnect;
+			printState();
+		}
+		break;
+	}
+}
+void WiFiEventWifiManager(WiFiEvent_t event) {
+	//Pass the event to the UDP Simple packet server
+	switch (event) {
+	case SYSTEM_EVENT_STA_GOT_IP:/**< ESP32 station got IP from connected AP */
+		state = InitialConnect;
+		staticRef->printState();
+
+		//When connected set
+		Serial.print("WiFi connected! IP address: ");
+		Serial.println(WiFi.localIP());
+		staticRef->timeOfLastConnect = millis();
 		break;
 	case SYSTEM_EVENT_STA_DISCONNECTED: /**< ESP32 station disconnected from AP */
-
 		staticRef->timeOfLastDisconnect = millis();
-		if (staticRef->state != HaveSSIDSerial) {
-			staticRef->state = Disconnected;
+		if (state != HaveSSIDSerial) {
+			state = Disconnected;
+			staticRef->printState();
+
 			Serial.println(
 					"WiFi lost connection, retry "+String(5-staticRef->connectionAttempts));
 		}
