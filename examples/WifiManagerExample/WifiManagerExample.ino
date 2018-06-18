@@ -6,9 +6,9 @@
 //Create a wifi manager
 WifiManager manager;
 // modify the preferences
-static Preferences preferences;
 
 void setup() {
+	Preferences preferences;
 	preferences.begin("wifi", false); // Note: Namespace name is limited to 15 chars
 	//preferences.clear();// erase all stored passwords
 	//preferences.putString("ssid", "TestNetAP");// set a specific default network to connect to if many possible are present
