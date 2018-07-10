@@ -9,17 +9,19 @@
 static Preferences preferences;
 void WiFiEventWifiManager(WiFiEvent_t event);
 static WifiManager * staticRef = NULL;
+static enum connectionState state ;
 
 #define rescanIncrement 2
 WifiManager::WifiManager() {
-
+	state= firstStart;
+	connectionAttempts=0;
 }
 
 WifiManager::~WifiManager() {
 	// TODO Auto-generated destructor stub
 }
 enum connectionState WifiManager::getState() {
-	return WifiManager::state;
+	return state;
 }
 void WifiManager::printState() {
 	switch (state) {
@@ -213,7 +215,7 @@ void WiFiEventWifiManager(WiFiEvent_t event) {
 	//Pass the event to the UDP Simple packet server
 	switch (event) {
 	case SYSTEM_EVENT_STA_GOT_IP:/**< ESP32 station got IP from connected AP */
-		WifiManager::state = InitialConnect;
+		state = InitialConnect;
 		staticRef->printState();
 
 		//When connected set
@@ -223,8 +225,8 @@ void WiFiEventWifiManager(WiFiEvent_t event) {
 		break;
 	case SYSTEM_EVENT_STA_DISCONNECTED: /**< ESP32 station disconnected from AP */
 		staticRef->timeOfLastDisconnect = millis();
-		if (WifiManager::state != HaveSSIDSerial) {
-			WifiManager::state = Disconnected;
+		if (state != HaveSSIDSerial) {
+			state = Disconnected;
 			staticRef->printState();
 			Serial.println(
 					"WiFi lost connection, retry "
