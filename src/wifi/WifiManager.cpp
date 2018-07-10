@@ -10,7 +10,6 @@ static Preferences preferences;
 void WiFiEventWifiManager(WiFiEvent_t event);
 static WifiManager * staticRef = NULL;
 static enum connectionState state ;
-
 #define rescanIncrement 2
 WifiManager::WifiManager() {
 	state= firstStart;
