@@ -22,6 +22,7 @@ enum connectionState {
 
 class WifiManager {
 public:
+	static enum connectionState state = firstStart;
 	//boolean connected = false;
 	long timeOfLastDisconnect = 0;
 	long timeOfLastConnect = 0;

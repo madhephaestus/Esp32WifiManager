@@ -5,11 +5,11 @@
  *      Author: hephaestus
  */
 
-#include <wifi/WifiManager.h>
+#include "WifiManager.h"
 static Preferences preferences;
 void WiFiEventWifiManager(WiFiEvent_t event);
 static WifiManager * staticRef = NULL;
-static enum connectionState state = firstStart;
+
 #define rescanIncrement 2
 WifiManager::WifiManager() {
 
@@ -19,7 +19,7 @@ WifiManager::~WifiManager() {
 	// TODO Auto-generated destructor stub
 }
 enum connectionState WifiManager::getState() {
-	return state;
+	return WifiManager::state;
 }
 void WifiManager::printState() {
 	switch (state) {
@@ -176,7 +176,7 @@ void WifiManager::loop() {
 		//printState();
 
 		if ((millis() - timeOfLastConnect) > 5000)
-			if ((timeOfLastDisconnect - 1000) > timeOfLastConnect) {
+			if ((timeOfLastDisconnect - 5000) > timeOfLastConnect) {
 				Serial.println(
 						"Timeouts for connection wait, reconnecting last connected: "
 								+ String(timeOfLastConnect)
@@ -208,11 +208,12 @@ void WifiManager::loop() {
 		break;
 	}
 }
+
 void WiFiEventWifiManager(WiFiEvent_t event) {
 	//Pass the event to the UDP Simple packet server
 	switch (event) {
 	case SYSTEM_EVENT_STA_GOT_IP:/**< ESP32 station got IP from connected AP */
-		state = InitialConnect;
+		WifiManager::state = InitialConnect;
 		staticRef->printState();
 
 		//When connected set
@@ -222,10 +223,9 @@ void WiFiEventWifiManager(WiFiEvent_t event) {
 		break;
 	case SYSTEM_EVENT_STA_DISCONNECTED: /**< ESP32 station disconnected from AP */
 		staticRef->timeOfLastDisconnect = millis();
-		if (state != HaveSSIDSerial) {
-			state = Disconnected;
+		if (WifiManager::state != HaveSSIDSerial) {
+			WifiManager::state = Disconnected;
 			staticRef->printState();
-
 			Serial.println(
 					"WiFi lost connection, retry "
 							+ String(rescanIncrement - staticRef->connectionAttempts));
