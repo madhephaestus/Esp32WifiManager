@@ -6,10 +6,14 @@
  */
 
 #include "WifiManager.h"
+#include <Preferences.h>
+#include <WiFi.h>
+
 static Preferences preferences;
 void WiFiEventWifiManager(WiFiEvent_t event);
 static WifiManager * staticRef = NULL;
 static enum connectionState state ;
+
 #define rescanIncrement 2
 WifiManager::WifiManager() {
 	state= firstStart;
@@ -62,16 +66,14 @@ void WifiManager::setup() {
 
 }
 void WifiManager::connectToWiFi(const char * ssid, const char * pwd) {
-	WiFi.mode(WIFI_STA);
-	WiFi.disconnect(true);
-	Serial.println("waiting 1 more second for WiFi to clear");
-	delay(1000); // wait for WiFI stack to fully timeout
+
 	Serial.println("Attempting to connect to WiFi network: " + String(ssid));
 //Initiate connection
+	WiFi.mode(WIFI_STA);
 	WiFi.begin(ssid, pwd);
 
-	Serial.println("Waiting for WIFI connection...");
-	timeOfLastConnect = millis();
+	Serial.println("Waiting for WIFI connection... "+String(pwd));
+	timeOfLastConnect = 0;
 	timeOfLastDisconnect = millis() - rescanIncrement;
 	String mac = WiFi.macAddress();
 	Serial.println("Mac Address: " + mac);
@@ -177,7 +179,7 @@ void WifiManager::loop() {
 		//printState();
 
 		if ((millis() - timeOfLastConnect) > 5000)
-			if ((timeOfLastDisconnect - 5000) > timeOfLastConnect) {
+			if ((millis() -timeOfLastDisconnect ) > 5000) {
 				Serial.println(
 						"Timeouts for connection wait, reconnecting last connected: "
 								+ String(timeOfLastConnect)
@@ -198,7 +200,7 @@ void WifiManager::loop() {
 		//Connect to the WiFi network
 		connectToWiFi(networkNameServer.c_str(), networkPswdServer.c_str());
 		state = Disconnected;
-		printState();
+		//printState();
 		break;
 	case HaveSSIDSerial:
 		if (Serial.available() > 0) {
@@ -227,6 +229,7 @@ void WiFiEventWifiManager(WiFiEvent_t event) {
 		if (state != HaveSSIDSerial) {
 			state = Disconnected;
 			staticRef->printState();
+			WiFi.disconnect(true);
 			Serial.println(
 					"WiFi lost connection, retry "
 							+ String(rescanIncrement - staticRef->connectionAttempts));
