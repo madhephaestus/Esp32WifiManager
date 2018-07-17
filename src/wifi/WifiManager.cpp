@@ -72,7 +72,7 @@ void WifiManager::connectToWiFi(const char * ssid, const char * pwd) {
 	WiFi.mode(WIFI_STA);
 	WiFi.begin(ssid, pwd);
 
-	Serial.println("Waiting for WIFI connection... "+String(pwd));
+	Serial.println("Waiting for WIFI connection... ");
 	timeOfLastConnect = 0;
 	timeOfLastDisconnect = millis() - rescanIncrement;
 	String mac = WiFi.macAddress();
