@@ -304,7 +304,8 @@ void WiFiEventWifiManager(WiFiEvent_t event) {
 	case SYSTEM_EVENT_MAX:
 		Serial.println("SYSTEM_EVENT_MAX");
 		break;
-
+	default:
+		break;
 	}
 }
 
