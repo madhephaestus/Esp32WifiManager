@@ -9,11 +9,10 @@
 #include <server/UDPSimplePacket.h>
 
 //#include <controller/ControlFactory.h>
-void launchControllerServer() ;
+void launchControllerServer();
 
-void addServer(PacketEventAbstract * eventImplementation );
-void setNameUdpDevice(String *robot );
+void addServer(PacketEventAbstract * eventImplementation);
+void setNameUdpDevice(String *robot);
 void loopServer();
-
 
 #endif

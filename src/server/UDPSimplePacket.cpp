@@ -1,22 +1,21 @@
 #include "UDPSimplePacket.h"
 
-static UDPSimplePacket * simple=NULL;
+static UDPSimplePacket * simple = NULL;
 void WiFiEventServer(WiFiEvent_t event);
-
 
 UDPSimplePacket::UDPSimplePacket(WiFiUDP * incomingUdp) {
 	udp = incomingUdp;
 	connected = false;
-	if(simple ==NULL){
-		simple=this;
+	if (simple == NULL) {
+		simple = this;
 		WiFi.onEvent(WiFiEventServer);
 	}
 }
 UDPSimplePacket::UDPSimplePacket() {
 	udp = new WiFiUDP();
 	connected = false;
-	if(simple ==NULL){
-		simple=this;
+	if (simple == NULL) {
+		simple = this;
 		WiFi.onEvent(WiFiEventServer);
 	}
 
@@ -60,7 +59,7 @@ int32_t UDPSimplePacket::sendPacket(uint8_t * buffer, uint32_t numberOfBytes) {
 	}
 
 	int ret = udp->write(buffer, numberOfBytes);
-	if (udp->endPacket()){
+	if (udp->endPacket()) {
 		//Serial.println("\nSent packet "+ String(ret));
 		return ret;
 	}
@@ -81,7 +80,7 @@ void UDPSimplePacket::WiFiEvent(WiFiEvent_t event) {
 		connected = false;
 		break;
 	case SYSTEM_EVENT_AP_STACONNECTED: /**< a station connected to ESP32 soft-AP */
-		if(!connected)
+		if (!connected)
 			udp->begin(WiFi.softAPIP(), SIMPLE_PACKET_UDP_PORT);
 		connected = true;
 		break;

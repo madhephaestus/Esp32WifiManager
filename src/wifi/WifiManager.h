@@ -21,18 +21,24 @@ enum connectionState {
 };
 
 class WifiManager {
+private:
+
+	void connectToWiFi(const char * ssid, const char * pwd);
+	void startAP() ;
 public:
+	bool APMode=false;
 	//boolean connected = false;
 	long timeOfLastDisconnect = 0;
 	long timeOfLastConnect = 0;
 	String networkNameServer;
 	String networkPswdServer;
+	String apNameServer;
+	String apPswdServer;
 	int connectionAttempts;
 	WifiManager();
 	virtual ~WifiManager();
 	void loop();
 	void setup();
-	void connectToWiFi(const char * ssid, const char * pwd);
 	void rescan();
 	void printState();
 	enum connectionState getState();

@@ -9,10 +9,10 @@
 #define LIBRARIES_UdpNameSearch_H_
 #include <device/UDPSimplePacketComs.hpp>
 #include <client/AbstractPacketType.h>
-class UdpNameSearch{
+class UdpNameSearch {
 	UDPSimplePacketComs* myconnection;
 	AbstractPacketType * readController;
-	bool isTimedOutValue=false;
+	bool isTimedOutValue = false;
 	String * myName;
 public:
 	UdpNameSearch(UDPSimplePacketComs* connection, String * name);

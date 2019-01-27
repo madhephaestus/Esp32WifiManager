@@ -10,16 +10,16 @@ static WiFiUDP * udp = NULL;
 static boolean connected = false;
 std::vector<IPAddress*> availibleIPs;
 
-std::vector<IPAddress*> * getAvailibleIPs(){
+std::vector<IPAddress*> * getAvailibleIPs() {
 	return &availibleIPs;
 }
 
-UDPSimplePacketComs::UDPSimplePacketComs(IPAddress* target,boolean useClient) {
+UDPSimplePacketComs::UDPSimplePacketComs(IPAddress* target, boolean useClient) {
 	targetDevice = new IPAddress();
 	targetDevice->fromString(target->toString());
 	if (udp == NULL) {
 		udp = new WiFiUDP();
-		if(useClient)
+		if (useClient)
 			udp->begin(WiFi.localIP(), SIMPLE_PACKET_UDP_PORT);
 		else
 			udp->begin(WiFi.softAPIP(), SIMPLE_PACKET_UDP_PORT);
@@ -106,17 +106,18 @@ bool UDPSimplePacketComs::isResponseReady() {
 			tmp = new IPAddress();
 			tmp->fromString(udp->remoteIP().toString());
 			availibleIPs.push_back(tmp);
-			Serial.println("\nStoring packet from " );
+			Serial.println("\nStoring packet from ");
 			Serial.println(udp->remoteIP());
 		}
 		if (targetDevice[0] == udp->remoteIP()) {
 			//Serial.println("Received packet from " );
 			return true;
 		} else
-			Serial.println("Received packet, not for me " );
-		if(targetDevice[0][3]==255){
-			Serial.println("Broadcast Listener dumping " );
-			while(udp->read()>=0);
+			Serial.println("Received packet, not for me ");
+		if (targetDevice[0][3] == 255) {
+			Serial.println("Broadcast Listener dumping ");
+			while (udp->read() >= 0)
+				;
 		}
 	}
 	return false;

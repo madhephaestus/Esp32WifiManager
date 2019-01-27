@@ -8,13 +8,13 @@
 #include <client/AbstractPacketType.h>
 #include <device/UdpNameSearch.h>
 
-UdpNameSearch::UdpNameSearch(UDPSimplePacketComs* connection,String * name) {
-	myName=name;
+UdpNameSearch::UdpNameSearch(UDPSimplePacketComs* connection, String * name) {
+	myName = name;
 	myconnection = connection;
 	myconnection->connect();
 	readController = new AbstractPacketType(1776, 64);
-	for(int i=0;i<name->length();i++){
-		readController->getDownstreamBytes()[i]=name->charAt(i);
+	for (int i = 0; i < name->length(); i++) {
+		readController->getDownstreamBytes()[i] = name->charAt(i);
 	}
 	myconnection->addPollingPacket(readController);
 }
@@ -22,7 +22,6 @@ UdpNameSearch::UdpNameSearch(UDPSimplePacketComs* connection,String * name) {
 UdpNameSearch::~UdpNameSearch() {
 	myconnection->disconnect();
 }
-
 
 /**
  * Update the controller

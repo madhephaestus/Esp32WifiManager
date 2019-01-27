@@ -34,7 +34,7 @@ void addServer(PacketEventAbstract * eventImplementation) {
 }
 
 void setNameUdpDevice(String *robot) {
-	PacketEventAbstract * ptr= new NameCheckerServer(robot);
+	PacketEventAbstract * ptr = new NameCheckerServer(robot);
 	addServer(ptr);
 	Serial.println("Setting controller name to: " + robot[0]);
 }
@@ -46,5 +46,4 @@ void loopServer() {
 		simple->server();
 	}
 }
-
 

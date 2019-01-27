@@ -18,12 +18,11 @@ class UDPSimplePacketComs: public AbstractSimpleComsDevice {
 
 public:
 	IPAddress* targetDevice;
-	UDPSimplePacketComs(IPAddress* target,boolean useClient);
+	UDPSimplePacketComs(IPAddress* target, boolean useClient);
 
 	~UDPSimplePacketComs() {
 		disconnect();
 	}
-
 
 	/**
 	 * Abstract methods
@@ -60,7 +59,6 @@ public:
 	 * Check device to see if a response is ready
 	 */
 	bool isResponseReady();
-
 
 };
 
