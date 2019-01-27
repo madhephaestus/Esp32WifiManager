@@ -48,7 +48,10 @@ void WifiManager::printState() {
 		break;
 	}
 }
-
+void WifiManager::setupAP(){
+	APMode=true;
+	setup();
+}
 void WifiManager::setup() {
 	Serial.begin(115200);
 
@@ -57,6 +60,14 @@ void WifiManager::setup() {
 	networkPswdServer = preferences.getString(networkNameServer.c_str(),
 			"none"); //NVS key password
 	apNameServer = preferences.getString("apssid", "none"); //NVS key ssid
+	if (apNameServer.compareTo("none") == 0){
+		WiFi.mode(WIFI_MODE_AP);
+		uint8_t mac[6];
+		char macStr[18] = { 0 };
+		esp_wifi_get_mac(WIFI_IF_STA, mac);
+		sprintf(macStr,"%02X-%02X", mac[4], mac[5]);
+		apNameServer= "esp32-"+String(macStr);
+	}
 	apPswdServer = preferences.getString(apNameServer.c_str(), "Wumpus3742"); //NVS key password
 	Serial.println(" AP Mode SSID= "+apNameServer+":"+apPswdServer);
 	preferences.end();
@@ -167,15 +178,7 @@ void WifiManager::rescan() {
 	preferences.end();
 	if (!myNetworkPresent) {
 		Serial.println("NO availible AP/Pass stored");
-		if (apNameServer.compareTo("none") == 0){
-			WiFi.mode(WIFI_MODE_AP);
-			uint8_t mac[6];
-			char macStr[18] = { 0 };
-			esp_wifi_get_mac(WIFI_IF_STA, mac);
-			sprintf(macStr,"%02X-%02X", mac[4], mac[5]);
 
-			apNameServer= "esp32-"+String(macStr);
-		}
 		APMode = true;
 	}
 }
@@ -193,7 +196,6 @@ void WifiManager::loop() {
 				APMode = false;
 			}
 			state = HaveSSIDSerial;
-			printState();
 			Serial.println("New password: ");
 
 		}

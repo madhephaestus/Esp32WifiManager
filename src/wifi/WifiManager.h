@@ -39,6 +39,7 @@ public:
 	virtual ~WifiManager();
 	void loop();
 	void setup();
+	void setupAP();
 	void rescan();
 	void printState();
 	enum connectionState getState();
