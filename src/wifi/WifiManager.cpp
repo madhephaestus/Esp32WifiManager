@@ -69,7 +69,7 @@ void WifiManager::setup() {
 		apNameServer= "esp32-"+String(macStr);
 	}
 	apPswdServer = preferences.getString(apNameServer.c_str(), "Wumpus3742"); //NVS key password
-	Serial.println(" AP Mode SSID= "+apNameServer+":"+apPswdServer);
+	Serial.println(" AP Mode SSID="+apNameServer+":"+apPswdServer);
 	preferences.end();
 	state = reconnect;
 	printState();
@@ -96,6 +96,7 @@ void WifiManager::startAP() {
 	if (preferences.getString("apssid", "none").compareTo(apNameServer) != 0) {
 		Serial.println("Writing new AP ssid " + apNameServer);
 		preferences.putString("apssid", apNameServer);
+
 		delay(300);
 	}
 	if (preferences.getString(apNameServer.c_str(), "none").compareTo(
