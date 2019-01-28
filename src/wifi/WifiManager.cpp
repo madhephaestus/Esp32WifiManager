@@ -204,7 +204,7 @@ void WifiManager::loop() {
 	case firstStart:
 		//staticRef->printState();
 
-		state = InitialConnect;
+		state = reconnect;
 		printState();
 		break;
 	case InitialConnect:
@@ -278,13 +278,16 @@ void WiFiEventWifiManager(WiFiEvent_t event) {
 	//Pass the event to the UDP Simple packet server
 	switch (event) {
 	case SYSTEM_EVENT_STA_GOT_IP:/**< ESP32 station got IP from connected AP */
-		state = InitialConnect;
-		staticRef->printState();
+		if (state != HaveSSIDSerial&& !staticRef->APMode) {
+			state = InitialConnect;
+			staticRef->printState();
 
-		//When connected set
-		Serial.print("WiFi connected! IP address: ");
-		Serial.println(WiFi.localIP());
-		staticRef->timeOfLastConnect = millis();
+			//When connected set
+			Serial.print("\n\n\nWiFi connected! IP address: ");
+			Serial.print(WiFi.localIP());
+			Serial.print("\n\n\n");
+			staticRef->timeOfLastConnect = millis();
+		}
 		break;
 	case SYSTEM_EVENT_STA_DISCONNECTED: /**< ESP32 station disconnected from AP */
 		staticRef->timeOfLastDisconnect = millis();

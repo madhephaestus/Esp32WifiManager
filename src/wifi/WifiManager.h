@@ -42,7 +42,7 @@ public:
 	void setupAP();
 	void rescan();
 	void printState();
-	enum connectionState getState();
+	static enum connectionState getState();
 };
 
 #endif /* LIBRARIES_ESP32SIMPLEPACKETCOMS_SRC_WIFI_WIFIMANAGER_H_ */
