@@ -94,18 +94,17 @@ void WifiManager::startAP() {
 
 	preferences.begin("wifi", false); // Note: Namespace name is limited to 15 chars
 	if (preferences.getString("apssid", "none").compareTo(apNameServer) != 0) {
-		Serial.println("Writing new AP ssid " + apNameServer);
 		preferences.putString("apssid", apNameServer);
 
 		delay(300);
 	}
 	if (preferences.getString(apNameServer.c_str(), "none").compareTo(
 			apPswdServer) != 0) {
-		Serial.println("Starting AP With pass "+apPswdServer);
 		preferences.putString(apNameServer.c_str(), apPswdServer);
 		delay(300);
 	}
 	preferences.end();
+	Serial.println("Starting AP '"+apNameServer+"' : '"+apPswdServer+"'");
 }
 void WifiManager::connectToWiFi(const char * ssid, const char * pwd) {
 
@@ -191,7 +190,7 @@ void WifiManager::loop() {
 					networkNameServer.substring(0, 3).compareTo("ap:") == 0	) {
 				apNameServer = networkNameServer.substring(3,18);// ensure SSID is less than 15 char to use the SSID as key for password
 				APMode = true;
-				Serial.print("AP Mode ssid: " + apNameServer);
+				Serial.println("AP Mode ssid: " + apNameServer);
 			} else {
 				Serial.println("New ssid: " + networkNameServer);
 				APMode = false;
