@@ -5,7 +5,6 @@
 //Create a wifi manager
 WifiManager manager;
 // modify the preferences
-
 void setup() {
 	Preferences preferences;
 	preferences.begin("wifi", false); // Note: Namespace name is limited to 15 chars
