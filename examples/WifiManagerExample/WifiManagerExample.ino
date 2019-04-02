@@ -1,8 +1,7 @@
 #include <Preferences.h>
 #include <WiFi.h>
-#include <SimplePacketComs.h>
-#include <Esp32SimplePacketComs.h>
-#include <wifi/WifiManager.h>
+#include <Esp32WifiManager.h>
+
 //Create a wifi manager
 WifiManager manager;
 // modify the preferences
