@@ -1,2 +1,2 @@
 #pragma once
-#include "src/wifi/WifiManager.h"
+#include "wifi/WifiManager.h"
