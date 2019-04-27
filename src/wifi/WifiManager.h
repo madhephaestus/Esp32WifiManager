@@ -33,6 +33,8 @@ private:
 	String apNameServer;
 	String apPswdServer;
 	int connectionAttempts;
+
+	void rescan();
 public:
 
 	WifiManager();
@@ -40,7 +42,6 @@ public:
 	void loop();
 	void setup();
 	void setupAP();
-	void rescan();
 	void printState();
 	static enum connectionState getState();
 	void WiFiEvent(WiFiEvent_t event);
