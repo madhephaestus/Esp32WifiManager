@@ -22,10 +22,8 @@ enum connectionState {
 
 class WifiManager {
 private:
-
 	void connectToWiFi(const char * ssid, const char * pwd);
 	void startAP() ;
-public:
 	bool APMode=false;
 	//boolean connected = false;
 	long timeOfLastDisconnect = 0;
@@ -35,6 +33,8 @@ public:
 	String apNameServer;
 	String apPswdServer;
 	int connectionAttempts;
+public:
+
 	WifiManager();
 	virtual ~WifiManager();
 	void loop();
@@ -43,6 +43,8 @@ public:
 	void rescan();
 	void printState();
 	static enum connectionState getState();
+	void WiFiEvent(WiFiEvent_t event);
+
 };
 
 #endif /* LIBRARIES_ESP32SIMPLEPACKETCOMS_SRC_WIFI_WIFIMANAGER_H_ */

@@ -6,6 +6,7 @@
  */
 
 #include "WifiManager.h"
+#include <Arduino.h>
 #include <Preferences.h>
 #include <WiFi.h>
 #include <esp_wifi.h>
@@ -144,6 +145,7 @@ void WifiManager::rescan() {
 				if (networkNameServer.compareTo(WiFi.WiFiScanClass::SSID(i))
 						== 0) {
 					myNetworkPresent = true;
+
 				}
 
 			}
@@ -274,7 +276,7 @@ void WifiManager::loop() {
 	}
 }
 
-void WiFiEventWifiManager(WiFiEvent_t event) {
+void  WifiManager::WiFiEvent(WiFiEvent_t event) {
 	//Pass the event to the UDP Simple packet server
 	switch (event) {
 	case SYSTEM_EVENT_STA_GOT_IP:/**< ESP32 station got IP from connected AP */
@@ -372,4 +374,6 @@ void WiFiEventWifiManager(WiFiEvent_t event) {
 		break;
 	}
 }
-
+void WiFiEventWifiManager(WiFiEvent_t event){
+	staticRef->WiFiEvent(event);
+}
