@@ -51,7 +51,11 @@ void WifiManager::printState() {
 }
 void WifiManager::setupAP() {
 	APMode = true;
+	WiFi.mode(WIFI_STA);
+	WiFi.disconnect();
+	delay(100);
 	setup();
+	state = reconnect;
 }
 void WifiManager::setup() {
 	if (setupDone)
@@ -72,8 +76,8 @@ void WifiManager::setup() {
 		apNameServer = "esp32-" + String(macStr);
 	}
 	apPswdServer = preferences.getString(apNameServer.c_str(), "Wumpus3742"); //NVS key password
-	Serial.println(" AP Mode SSID=" + apNameServer + ":" + apPswdServer);
 	preferences.end();
+
 	state = reconnect;
 	printState();
 	staticRef = this;
@@ -106,9 +110,11 @@ void WifiManager::startAP() {
 		preferences.putString(apNameServer.c_str(), apPswdServer);
 		delay(300);
 	}
+
 	preferences.end();
 	Serial.println(
 			"Starting AP '" + apNameServer + "' : '" + apPswdServer + "'");
+
 }
 void WifiManager::connectToWiFi(const char * ssid, const char * pwd) {
 
@@ -200,18 +206,23 @@ void WifiManager::loop() {
 	if (state != HaveSSIDSerial) {
 		if (Serial.available() > 0) {
 			networkNameServer = Serial.readString();
+			state = HaveSSIDSerial;
 			if (networkNameServer.substring(0, 3).compareTo("AP:") == 0
 					|| networkNameServer.substring(0, 3).compareTo("ap:")
 							== 0) {
-				apNameServer = networkNameServer.substring(3, 18); // ensure SSID is less than 15 char to use the SSID as key for password
+				String got = networkNameServer.substring(3, 18); // ensure SSID is less than 15 char to use the SSID as key for password
+				if(got.length()>1)
+					apNameServer = got;
+				else
+					state = reconnect;
 				APMode = true;
 				Serial.println("AP Mode ssid: " + apNameServer);
 			} else {
 				Serial.println("New ssid: " + networkNameServer);
 				APMode = false;
 			}
-			state = HaveSSIDSerial;
-			Serial.println("New password: ");
+			if(state==HaveSSIDSerial)
+				Serial.println("New password: ");
 
 		}
 	}
@@ -290,10 +301,12 @@ void WifiManager::loop() {
 }
 
 void WifiManager::WiFiEvent(WiFiEvent_t event) {
+	if(state==HaveSSIDSerial)
+		return;
 	//Pass the event to the UDP Simple packet server
 	switch (event) {
 	case SYSTEM_EVENT_STA_GOT_IP:/**< ESP32 station got IP from connected AP */
-		if (state != HaveSSIDSerial && !APMode) {
+		if ( !APMode) {
 			state = InitialConnect;
 			staticRef->printState();
 
@@ -306,7 +319,7 @@ void WifiManager::WiFiEvent(WiFiEvent_t event) {
 		break;
 	case SYSTEM_EVENT_STA_DISCONNECTED: /**< ESP32 station disconnected from AP */
 		timeOfLastDisconnect = millis();
-		if (state != HaveSSIDSerial && !APMode) {
+		if ( !APMode) {
 			state = Disconnected;
 			staticRef->printState();
 			WiFi.disconnect(true);
@@ -315,9 +328,9 @@ void WifiManager::WiFiEvent(WiFiEvent_t event) {
 		}
 		break;
 	case SYSTEM_EVENT_WIFI_READY: /**< ESP32 WiFi ready */
-		if(state == Connected){
+		if(state == Connected && !APMode){
 			state = Disconnected;
-			staticRef->printState();
+			printState();
 			WiFi.disconnect(true);
 			Serial.println("WiFi lost connection, retry " + String(
 			rescanIncrement - connectionAttempts));
