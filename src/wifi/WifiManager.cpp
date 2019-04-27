@@ -6,23 +6,18 @@
  */
 
 #include "WifiManager.h"
-#include <Arduino.h>
-#include <Preferences.h>
-#include <WiFi.h>
-#include <esp_wifi.h>
-static Preferences preferences;
-void WiFiEventWifiManager(WiFiEvent_t event);
-static WifiManager * staticRef = NULL;
-static enum connectionState state;
-static bool setupDone = false;
-#define rescanIncrement 2
+WifiManager * WifiManager::staticRef = NULL;
+
+static void WiFiEventWifiManager(WiFiEvent_t event) {
+	if (WifiManager::staticRef != NULL)
+		WifiManager::staticRef->WiFiEvent(event);
+}
+
 WifiManager::WifiManager() {
-	state = firstStart;
-	connectionAttempts = 0;
 }
 
 WifiManager::~WifiManager() {
-	// TODO Auto-generated destructor stub
+	WifiManager::staticRef = NULL;
 }
 enum connectionState WifiManager::getState() {
 	return state;
@@ -46,6 +41,9 @@ void WifiManager::printState() {
 		break;
 	case reconnect:
 		Serial.println("WifiManager.getState()=reconnect");
+		break;
+	case APWaitingForSTA:
+		Serial.println("WifiManager.getState()=APWaitingForSTA");
 		break;
 	}
 }
@@ -112,8 +110,7 @@ void WifiManager::startAP() {
 	}
 
 	preferences.end();
-	Serial.println(
-			"Starting AP '" + apNameServer + "' : '" + apPswdServer + "'");
+	Serial.println("Starting AP:" + apNameServer + "\npass = " + apPswdServer);
 
 }
 void WifiManager::connectToWiFi(const char * ssid, const char * pwd) {
@@ -128,6 +125,7 @@ void WifiManager::connectToWiFi(const char * ssid, const char * pwd) {
 	timeOfLastDisconnect = millis() - rescanIncrement;
 	String mac = WiFi.macAddress();
 	Serial.println("Mac Address: " + mac);
+	state = Disconnected;
 }
 
 void WifiManager::rescan() {
@@ -191,8 +189,8 @@ void WifiManager::rescan() {
 			Serial.println("");
 
 		}
-	}else{
-		Serial.println("Scan Failed!! "+ String(n) );
+	} else {
+		Serial.println("Scan Failed!! " + String(n));
 	}
 
 	preferences.end();
@@ -205,23 +203,35 @@ void WifiManager::rescan() {
 void WifiManager::loop() {
 	if (state != HaveSSIDSerial) {
 		if (Serial.available() > 0) {
-			networkNameServer = Serial.readString();
-			state = HaveSSIDSerial;
-			if (networkNameServer.substring(0, 3).compareTo("AP:") == 0
-					|| networkNameServer.substring(0, 3).compareTo("ap:")
-							== 0) {
-				String got = networkNameServer.substring(3, 18); // ensure SSID is less than 15 char to use the SSID as key for password
-				if(got.length()>1)
+			String tmp = Serial.readString();
+			if (tmp.substring(0, 3).compareTo("AP:") == 0
+					|| tmp.substring(0, 3).compareTo("ap:") == 0) {
+				String got = tmp.substring(3, 18); // ensure SSID is less than 15 char to use the SSID as key for password
+				if (got.length() > 1) {
 					apNameServer = got;
-				else
+					state = HaveSSIDSerial;
+				} else
 					state = reconnect;
 				APMode = true;
 				Serial.println("AP Mode ssid: " + apNameServer);
+			} else if ((tmp.compareTo("STA") == 0 || tmp.compareTo("sta") == 0)
+					&& tmp.length() == 3) {
+				Serial.println(
+						"Switching to STA mode New ssid: " + networkNameServer);
+				APMode = false;
+				state = reconnect;
+			} else if ((tmp.compareTo("ERASE") == 0
+					|| tmp.compareTo("erase") == 0) && tmp.length() == 5) {
+				Serial.println("Erasing all stored passwords");
+				erase();
+				ESP.restart();
 			} else {
+				networkNameServer = tmp;
 				Serial.println("New ssid: " + networkNameServer);
 				APMode = false;
+				state = HaveSSIDSerial;
 			}
-			if(state==HaveSSIDSerial)
+			if (state == HaveSSIDSerial)
 				Serial.println("New password: ");
 
 		}
@@ -251,9 +261,12 @@ void WifiManager::loop() {
 		state = Connected;
 		printState();
 		break;
+	case APWaitingForSTA:
+		if ((timeSinceAPPrint + 1000) < millis()) {
+			timeSinceAPPrint = millis();
+			printState();
+		} // @suppress("No break at end of case")
 	case Connected:
-		//printState();
-
 		break;
 	case Disconnected:
 		//printState();
@@ -282,7 +295,7 @@ void WifiManager::loop() {
 			connectToWiFi(networkNameServer.c_str(), networkPswdServer.c_str());
 			state = Disconnected;
 		} else {
-			state = Connected;
+			state = APWaitingForSTA;
 			startAP();
 		}
 		//printState();
@@ -301,40 +314,40 @@ void WifiManager::loop() {
 }
 
 void WifiManager::WiFiEvent(WiFiEvent_t event) {
-	if(state==HaveSSIDSerial)
+	if (state == HaveSSIDSerial)
 		return;
 	//Pass the event to the UDP Simple packet server
 	switch (event) {
 	case SYSTEM_EVENT_STA_GOT_IP:/**< ESP32 station got IP from connected AP */
-		if ( !APMode) {
+		if (!APMode) {
 			state = InitialConnect;
-			staticRef->printState();
+			printState();
 
 			//When connected set
 			Serial.print("\n\n\nWiFi connected! IP address: ");
 			Serial.print(WiFi.localIP());
 			Serial.print("\n\n\n");
-			staticRef->timeOfLastConnect = millis();
+			timeOfLastConnect = millis();
 		}
 		break;
 	case SYSTEM_EVENT_STA_DISCONNECTED: /**< ESP32 station disconnected from AP */
 		timeOfLastDisconnect = millis();
-		if ( !APMode) {
+		if (!APMode) {
 			state = Disconnected;
-			staticRef->printState();
+			printState();
 			WiFi.disconnect(true);
 			Serial.println("WiFi lost connection, retry " + String(
 			rescanIncrement - connectionAttempts));
 		}
 		break;
 	case SYSTEM_EVENT_WIFI_READY: /**< ESP32 WiFi ready */
-		if(state == Connected && !APMode){
+		if (state == Connected && !APMode) {
 			state = Disconnected;
 			printState();
 			WiFi.disconnect(true);
 			Serial.println("WiFi lost connection, retry " + String(
 			rescanIncrement - connectionAttempts));
-		}else{
+		} else {
 			Serial.println("ESP32 WiFi ready ");
 		}
 		break;
@@ -376,9 +389,11 @@ void WifiManager::WiFiEvent(WiFiEvent_t event) {
 		break;
 	case SYSTEM_EVENT_AP_STACONNECTED: /**< a station connected to ESP32 soft-AP */
 		Serial.println("SYSTEM_EVENT_AP_STACONNECTED");
+		state = Connected;
 		break;
 	case SYSTEM_EVENT_AP_STADISCONNECTED: /**< a station disconnected from ESP32 soft-AP */
 		Serial.println("SYSTEM_EVENT_AP_STADISCONNECTED");
+		state = APWaitingForSTA;
 		break;
 	case SYSTEM_EVENT_AP_PROBEREQRECVED: /**< Receive probe request packet in soft-AP interface */
 		Serial.println("SYSTEM_EVENT_AP_PROBEREQRECVED");
@@ -408,7 +423,21 @@ void WifiManager::WiFiEvent(WiFiEvent_t event) {
 		break;
 	}
 }
-void WiFiEventWifiManager(WiFiEvent_t event) {
-	if (staticRef != NULL)
-		staticRef->WiFiEvent(event);
+
+/**
+ * Check to see if the device is already in AP mode.
+ */
+bool WifiManager::isApMode() {
+	return APMode;
+}
+
+/**
+ * erase()
+ * Erase all stored passwords and AP mode settings
+ */
+void WifiManager::erase() {
+	preferences.begin("wifi", false); // Note: Namespace name is limited to 15 chars
+	preferences.clear(); // erase all stored passwords
+	delay(300);
+	preferences.end();
 }

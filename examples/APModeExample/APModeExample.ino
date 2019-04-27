@@ -4,16 +4,14 @@
 
 //Create a wifi manager
 WifiManager manager;
-// modify the preferences
 void setup() {
-	//manager.erase();// This will erase the stored passwords
-	manager.setup();
+	manager.setupAP();// Always go straight into AP mode without doing a re-scan first
 }
 
 void loop() {
 	// read the serial port for new passwords and maintain connections
 	manager.loop();
 	if (manager.getState() == Connected) {
-		// use the Wifi Stack now connected
+		// use the Wifi Stack now connected and a device is connected to the AP
 	}
 }
