@@ -109,7 +109,7 @@ void WifiManager::startAP() {
 
 	preferences.end();
 	Serial.println("Starting AP:" + apNameServer + "\npass = " + apPswdServer);
-
+	timeSinceAPStart=millis();
 }
 void WifiManager::connectToWiFi(const char * ssid, const char * pwd) {
 
@@ -274,8 +274,11 @@ void WifiManager::loop() {
 	case APWaitingForSTA:
 		if ((timeSinceAPPrint + 5000) < millis()) {
 			timeSinceAPPrint = millis();
-			Serial.println("Waiting for client to connect to AP");
-		} // @suppress("No break at end of case")
+			Serial.println("Waiting for client to connect to AP "+String(millis()-timeSinceAPStart));
+		}
+		if ((timeSinceAPStart + 60000*5) < millis()){
+			disconnect();// No connections after 1 minute, try connecting
+		}// @suppress("No break at end of case")
 	case Connected:
 		break;
 	case Disconnected:
@@ -335,6 +338,7 @@ void  WifiManager::disconnect(){
 	timeOfLastConnect = millis()+5001;
 	timeOfLastDisconnect =millis()+5001;
 	networkNameServer="none";
+	APMode=false;
 
 }
 void WifiManager::WiFiEvent(WiFiEvent_t event) {

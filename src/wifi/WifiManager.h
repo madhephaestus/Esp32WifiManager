@@ -39,6 +39,7 @@ private:
 	Preferences preferences;
 	void rescan();
 	long timeSinceAPPrint =0;
+	long timeSinceAPStart =0;
 	enum connectionState state=firstStart;
 	bool setupDone = false;
 public:
