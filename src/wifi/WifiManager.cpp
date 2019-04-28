@@ -60,24 +60,22 @@ void WifiManager::setup() {
 		return;
 	Serial.begin(115200);
 
+
+	WiFi.mode(WIFI_MODE_AP);
+	uint8_t mac[6];
+	char macStr[18] = { 0 };
+	esp_wifi_get_mac(WIFI_IF_STA, mac);
+	sprintf(macStr, "%02X-%02X", mac[4], mac[5]);
+	String defaultap =  "esp32-" + String(macStr);
+
 	preferences.begin("wifi", true);
-	networkNameServer = preferences.getString("ssid", "none");    //NVS key ssid
-	networkPswdServer = preferences.getString(networkNameServer.c_str(),
-			"none"); //NVS key password
-	apNameServer = preferences.getString("apssid", "none"); //NVS key ssid
-	if (apNameServer.compareTo("none") == 0) {
-		WiFi.mode(WIFI_MODE_AP);
-		uint8_t mac[6];
-		char macStr[18] = { 0 };
-		esp_wifi_get_mac(WIFI_IF_STA, mac);
-		sprintf(macStr, "%02X-%02X", mac[4], mac[5]);
-		apNameServer = "esp32-" + String(macStr);
-	}
-	apPswdServer = preferences.getString(apNameServer.c_str(), "Wumpus3742"); //NVS key password
+	networkNameServer 	= preferences.getString("ssid", 					"none");    //NVS key ssid
+	networkPswdServer 	= preferences.getString(networkNameServer.c_str(),	"none"); //NVS key password
+	apNameServer 		= preferences.getString("apssid",					defaultap); //NVS key ssid
+	apPswdServer 		= preferences.getString(apNameServer.c_str(), 		"Wumpus3742"); //NVS key password
 	preferences.end();
 
 	state = reconnect;
-	printState();
 	staticRef = this;
 	connectionAttempts = 0;
 	WiFi.onEvent(WiFiEventWifiManager);
@@ -131,9 +129,8 @@ void WifiManager::connectToWiFi(const char * ssid, const char * pwd) {
 void WifiManager::rescan() {
 	bool myNetworkPresent = false;
 	preferences.begin("wifi", true);
-	networkNameServer = preferences.getString("ssid", "none");    //NVS key ssid
-	networkPswdServer = preferences.getString(networkNameServer.c_str(),
-			"none"); //NVS key password
+	//networkNameServer = preferences.getString("ssid", "none");    //NVS key ssid
+	//networkPswdServer = preferences.getString(networkNameServer.c_str(),"none"); //NVS key password
 	//Serial.println(networkNameServer);
 	//Serial.println(networkPswdServer);
 	Serial.println("scan start");
@@ -158,24 +155,30 @@ void WifiManager::rescan() {
 						Serial.println(
 								"Default network found: "
 										+ WiFi.WiFiScanClass::SSID(i));
+						networkPswdServer = preferences.getString(networkNameServer.c_str(), "none"); //NVS key password
 					}
 
 				}
 			}
 			if (!myNetworkPresent) {
 				Serial.println(" Default AP is missing, searching for new one");
-
-				for (int i = 0; i < n && myNetworkPresent == false; ++i) {
+				String bestNet="none";
+				int32_t bestStren=-5000;
+				for (int i = 0; i < n; ++i) {
 					// Print SSID and RSSI for each network found
-					networkNameServer = WiFi.WiFiScanClass::SSID(i);
-					networkPswdServer = preferences.getString(
-							networkNameServer.c_str(), "none"); //NVS key password
-					if (networkPswdServer.compareTo("none") != 0) {
+					String tmp = WiFi.WiFiScanClass::SSID(i);
+					if (preferences.getString(tmp.c_str(), "none").compareTo("none") != 0) {
 						myNetworkPresent = true;
+						if(WiFi.WiFiScanClass::RSSI(i)>bestStren){
+							bestNet=WiFi.WiFiScanClass::SSID(i);
+							bestStren=WiFi.WiFiScanClass::RSSI(i);
+							networkPswdServer = preferences.getString(
+														tmp.c_str(), "none"); //NVS key password
+						}
 					}
 					Serial.print(i + 1);
 					Serial.print(": ");
-					Serial.print(networkNameServer);
+					Serial.print(tmp);
 					Serial.print(" (");
 					Serial.print(WiFi.WiFiScanClass::RSSI(i));
 					Serial.print(")");
@@ -183,6 +186,9 @@ void WifiManager::rescan() {
 							(WiFi.encryptionType(i) == WIFI_AUTH_OPEN) ?
 									" " : "*");
 					delay(10);
+				}
+				if(myNetworkPresent){
+					networkNameServer=bestNet;
 				}
 			}
 
@@ -225,7 +231,11 @@ void WifiManager::loop() {
 				Serial.println("Erasing all stored passwords");
 				erase();
 				ESP.restart();
-			} else {
+			} else if ((tmp.compareTo("scan") == 0
+					|| tmp.compareTo("SCAN") == 0) && tmp.length() == 4) {
+				Serial.println("Re-scanning and reconnecting");
+				disconnect();
+			}else {
 				networkNameServer = tmp;
 				Serial.println("New ssid: " + networkNameServer);
 				APMode = false;
@@ -262,9 +272,9 @@ void WifiManager::loop() {
 		printState();
 		break;
 	case APWaitingForSTA:
-		if ((timeSinceAPPrint + 1000) < millis()) {
+		if ((timeSinceAPPrint + 5000) < millis()) {
 			timeSinceAPPrint = millis();
-			printState();
+			Serial.println("Waiting for client to connect to AP");
 		} // @suppress("No break at end of case")
 	case Connected:
 		break;
@@ -313,6 +323,20 @@ void WifiManager::loop() {
 	}
 }
 
+/**
+ * disconnect
+ * Force a disconnection and rescan of the system
+ */
+void  WifiManager::disconnect(){
+	state = Disconnected;
+	printState();
+	WiFi.disconnect(true);
+	connectionAttempts=rescanIncrement;
+	timeOfLastConnect = millis()+5001;
+	timeOfLastDisconnect =millis()+5001;
+	networkNameServer="none";
+
+}
 void WifiManager::WiFiEvent(WiFiEvent_t event) {
 	if (state == HaveSSIDSerial)
 		return;
@@ -342,9 +366,7 @@ void WifiManager::WiFiEvent(WiFiEvent_t event) {
 		break;
 	case SYSTEM_EVENT_WIFI_READY: /**< ESP32 WiFi ready */
 		if (state == Connected && !APMode) {
-			state = Disconnected;
-			printState();
-			WiFi.disconnect(true);
+			disconnect();
 			Serial.println("WiFi lost connection, retry " + String(
 			rescanIncrement - connectionAttempts));
 		} else {

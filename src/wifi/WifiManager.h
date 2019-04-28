@@ -96,6 +96,11 @@ public:
 	 * Erase all stored passwords and AP mode settings
 	 */
 	void erase();
+	/**
+	 * disconnect
+	 * Force a disconnection and rescan of the system
+	 */
+	void disconnect();
 };
 
 #endif /* LIBRARIES_ESP32SIMPLEPACKETCOMS_SRC_WIFI_WIFIMANAGER_H_ */
