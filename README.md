@@ -56,3 +56,26 @@ Mac Address: 24:0A:C4:1D:47:84
 Writing new AP ssid mine
 Starting AP With pass pass
 ```
+# Switch to AP mode withouth changing settings
+
+Type 
+```
+ap:
+```
+in the terminal. The device will host the AP configuration it has in memory.
+
+# Switching to Station mode
+
+Type:
+```
+STA
+```
+in the terminal. It will connect to the default AP and rescan if the default is not availible. 
+
+# Erase all stored passwords
+
+type:
+```
+ERASE
+```
+in the terminal. THis will erase all the stored passwords and reboot the ESP32.
