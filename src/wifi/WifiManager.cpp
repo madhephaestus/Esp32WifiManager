@@ -125,7 +125,23 @@ void WifiManager::connectToWiFi(const char * ssid, const char * pwd) {
 	Serial.println("Mac Address: " + mac);
 	state = Disconnected;
 }
-
+/**
+ * Update AP list
+ *
+ * This function will update the AP list, then reconnect
+ * @return the current number of availible AP's
+ * @Note this will take a few seconds and is BLOCKING during that time
+ */
+int WifiManager::updateApList(){
+	Serial.println("scan start");
+	// WiFi.scanNetworks will return the number of networks found
+	WiFi.mode(WIFI_STA);
+	WiFi.disconnect();
+	delay(100);
+	int16_t n = WiFi.scanNetworks();
+	state = reconnect;
+	return n;
+}
 void WifiManager::rescan() {
 	bool myNetworkPresent = false;
 	preferences.begin("wifi", true);

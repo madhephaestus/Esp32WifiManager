@@ -102,6 +102,14 @@ public:
 	 * Force a disconnection and rescan of the system
 	 */
 	void disconnect();
+	/**
+	 * Update AP list
+	 *
+	 * This function will update the AP list, then reconnect
+	 * @return the current number of availible AP's
+	 * @Note this will take a few seconds and is BLOCKING during that time
+	 */
+	int updateApList();
 };
 
 #endif /* LIBRARIES_ESP32SIMPLEPACKETCOMS_SRC_WIFI_WIFIMANAGER_H_ */
