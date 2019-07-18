@@ -124,17 +124,21 @@ void WifiManager::connectToWiFi(const char * ssid, const char * pwd) {
 
 	Serial.println("Attempting to connect to WiFi network: " + String(ssid));
 //Initiate connection
-	state = Disconnected;
+
 	WiFi.mode(WIFI_STA);
 	WiFi.disconnect(true);
 	delay(300);
+	state = Disconnected;
 
-	WiFi.begin(ssid, pwd);
 	timeOfLastConnect = 0;
 	timeOfLastDisconnect = millis() - rescanIncrement;
 	String mac = WiFi.macAddress();
 	Serial.println("Mac Address: " + mac);
 	Serial.println("Waiting for WIFI connection... \n\n");
+	if(state==Disconnected)
+		WiFi.begin(ssid, pwd);
+	else
+		Serial.println("Wifi state already changed ");
 }
 /**
  * Update AP list
@@ -224,7 +228,8 @@ void WifiManager::rescan() {
 		Serial.println("NO availible AP/Pass stored");
 
 		APMode = true;
-	}
+	}else
+		state=reconnect;
 }
 void WifiManager::runSerialLoop(){
 	if (state != HaveSSIDSerial) {
@@ -301,8 +306,9 @@ void WifiManager::loop() {
 			Serial.println("Waiting for client to connect to AP "+String(millis()-timeSinceAPStart));
 		}
 		if ((timeSinceAPStart + 60000*5) < millis()){
-			disconnect();// No connections after 1 minute, try connecting
+			disconnect();// No connections after 5 minute, try connecting
 		}// @suppress("No break at end of case")
+	case apconnected:
 	case Connected:
 		break;
 	case Disconnected:
@@ -328,7 +334,7 @@ void WifiManager::loop() {
 			}
 		break;
 	case scanRunning:
-		if(WiFi.scanComplete()>=0){
+		if(WiFi.scanComplete()!=WIFI_SCAN_RUNNING){
 			state=whatToDoAfterScanning;
 			Serial.println("scan DONE!");
 		}
@@ -370,6 +376,7 @@ void  WifiManager::disconnect(){
 	state = Disconnected;
 	printState();
 	WiFi.disconnect(true);
+	delay(300);
 	connectionAttempts=rescanIncrement;
 	timeOfLastConnect = millis()-timeoutTime-1;
 	timeOfLastDisconnect =millis()-timeoutTime-1;
@@ -425,6 +432,10 @@ void WifiManager::WiFiEvent(WiFiEvent_t event) {
 		break;
 	case SYSTEM_EVENT_STA_CONNECTED: /**< ESP32 station connected to AP */
 		Serial.println(" ESP32 station connected to AP ");
+		if (!APMode) {
+			state = apconnected;
+			timeOfLastConnect = millis();
+		}
 		break;
 	case SYSTEM_EVENT_STA_AUTHMODE_CHANGE: /**< the auth mode of AP connected by ESP32 station changed */
 		Serial.println("SYSTEM_EVENT_STA_AUTHMODE_CHANGE");
