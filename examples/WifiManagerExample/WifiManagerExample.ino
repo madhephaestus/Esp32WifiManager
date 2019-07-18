@@ -7,7 +7,7 @@ WifiManager manager;
 // modify the preferences
 void setup() {
 	//manager.erase();// This will erase the stored passwords
-	manager.setup();
+	manager.setupScan();
 }
 
 void loop() {

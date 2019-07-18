@@ -12,7 +12,7 @@
 #include <WiFi.h>
 #include <esp_wifi.h>
 #define rescanIncrement 2
-
+#define timeoutTime 400
 enum connectionState {
 	firstStart,
 	Disconnected,
@@ -20,7 +20,9 @@ enum connectionState {
 	Connected,
 	HaveSSIDSerial,
 	reconnect,
-	APWaitingForSTA
+	APWaitingForSTA,
+	scanRunning,
+	scanDone
 };
 
 class WifiManager {
@@ -41,7 +43,9 @@ private:
 	long timeSinceAPPrint =0;
 	long timeSinceAPStart =0;
 	enum connectionState state=firstStart;
+	enum connectionState whatToDoAfterScanning=reconnect;
 	bool setupDone = false;
+	void runSerialLoop();
 public:
 	/**
 	 * Static reference used by teh wifi event to pass teh event from the static context to the object context.
@@ -74,6 +78,10 @@ public:
 	 * Start the manager with AP mode started by default
 	 */
 	void setupAP();
+	/**
+	 * Start the manager but re-scan the environment first
+	 */
+	void setupScan();
 	/**
 	 * A formated print statement of the current state
 	 */

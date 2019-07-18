@@ -45,6 +45,8 @@ void WifiManager::printState() {
 	case APWaitingForSTA:
 		Serial.println("WifiManager.getState()=APWaitingForSTA");
 		break;
+	default:
+		break;
 	}
 }
 void WifiManager::setupAP() {
@@ -54,6 +56,13 @@ void WifiManager::setupAP() {
 	delay(100);
 	setup();
 	state = reconnect;
+}
+/**
+ * Start the manager but re-scan the environment first
+ */
+void WifiManager::setupScan(){
+	setup();
+	disconnect();
 }
 void WifiManager::setup() {
 	if (setupDone)
@@ -115,15 +124,17 @@ void WifiManager::connectToWiFi(const char * ssid, const char * pwd) {
 
 	Serial.println("Attempting to connect to WiFi network: " + String(ssid));
 //Initiate connection
+	state = Disconnected;
 	WiFi.mode(WIFI_STA);
-	WiFi.begin(ssid, pwd);
+	WiFi.disconnect(true);
+	delay(300);
 
-	Serial.println("Waiting for WIFI connection... ");
+	WiFi.begin(ssid, pwd);
 	timeOfLastConnect = 0;
 	timeOfLastDisconnect = millis() - rescanIncrement;
 	String mac = WiFi.macAddress();
 	Serial.println("Mac Address: " + mac);
-	state = Disconnected;
+	Serial.println("Waiting for WIFI connection... \n\n");
 }
 /**
  * Update AP list
@@ -136,26 +147,19 @@ int WifiManager::updateApList(){
 	Serial.println("scan start");
 	// WiFi.scanNetworks will return the number of networks found
 	WiFi.mode(WIFI_STA);
-	WiFi.disconnect();
+	WiFi.disconnect(true);
 	delay(100);
-	int16_t n = WiFi.scanNetworks();
-	state = reconnect;
+	int16_t n = WiFi.scanComplete();
+	WiFi.scanNetworks(true,  false, false, 300);
+	state = scanRunning;
+	whatToDoAfterScanning= reconnect;
 	return n;
 }
+
 void WifiManager::rescan() {
 	bool myNetworkPresent = false;
 	preferences.begin("wifi", true);
-	//networkNameServer = preferences.getString("ssid", "none");    //NVS key ssid
-	//networkPswdServer = preferences.getString(networkNameServer.c_str(),"none"); //NVS key password
-	//Serial.println(networkNameServer);
-	//Serial.println(networkPswdServer);
-	Serial.println("scan start");
-	// WiFi.scanNetworks will return the number of networks found
-	WiFi.mode(WIFI_STA);
-	WiFi.disconnect();
-	delay(100);
-	int16_t n = WiFi.scanNetworks();
-	Serial.println("scan done");
+	int16_t n = WiFi.scanComplete();
 	if (n >= 0) {
 		if (n == 0) {
 			Serial.println("no networks found");
@@ -222,46 +226,50 @@ void WifiManager::rescan() {
 		APMode = true;
 	}
 }
-void WifiManager::loop() {
+void WifiManager::runSerialLoop(){
 	if (state != HaveSSIDSerial) {
-		if (Serial.available() > 0) {
-			String tmp = Serial.readString();
-			if (tmp.substring(0, 3).compareTo("AP:") == 0
-					|| tmp.substring(0, 3).compareTo("ap:") == 0) {
-				String got = tmp.substring(3, 18); // ensure SSID is less than 15 char to use the SSID as key for password
-				if (got.length() > 1) {
-					apNameServer = got;
-					state = HaveSSIDSerial;
-				} else
+			if (Serial.available() > 0) {
+				String tmp = Serial.readString();
+				if (tmp.substring(0, 3).compareTo("AP:") == 0
+						|| tmp.substring(0, 3).compareTo("ap:") == 0) {
+					String got = tmp.substring(3, 18); // ensure SSID is less than 15 char to use the SSID as key for password
+					if (got.length() > 1) {
+						apNameServer = got;
+						state = HaveSSIDSerial;
+					} else
+						state = reconnect;
+					APMode = true;
+					Serial.println("AP Mode ssid: " + apNameServer);
+				} else if ((tmp.compareTo("STA") == 0 || tmp.compareTo("sta") == 0)
+						&& tmp.length() == 3) {
+					Serial.println(
+							"Switching to STA mode New ssid: " + networkNameServer);
+					APMode = false;
 					state = reconnect;
-				APMode = true;
-				Serial.println("AP Mode ssid: " + apNameServer);
-			} else if ((tmp.compareTo("STA") == 0 || tmp.compareTo("sta") == 0)
-					&& tmp.length() == 3) {
-				Serial.println(
-						"Switching to STA mode New ssid: " + networkNameServer);
-				APMode = false;
-				state = reconnect;
-			} else if ((tmp.compareTo("ERASE") == 0
-					|| tmp.compareTo("erase") == 0) && tmp.length() == 5) {
-				Serial.println("Erasing all stored passwords");
-				erase();
-				ESP.restart();
-			} else if ((tmp.compareTo("scan") == 0
-					|| tmp.compareTo("SCAN") == 0) && tmp.length() == 4) {
-				Serial.println("Re-scanning and reconnecting");
-				disconnect();
-			}else {
-				networkNameServer = tmp;
-				Serial.println("New ssid: " + networkNameServer);
-				APMode = false;
-				state = HaveSSIDSerial;
-			}
-			if (state == HaveSSIDSerial)
-				Serial.println("New password: ");
+				} else if ((tmp.compareTo("ERASE") == 0
+						|| tmp.compareTo("erase") == 0) && tmp.length() == 5) {
+					Serial.println("Erasing all stored passwords");
+					erase();
+					ESP.restart();
+				} else if ((tmp.compareTo("scan") == 0
+						|| tmp.compareTo("SCAN") == 0) && tmp.length() == 4) {
+					Serial.println("Re-scanning and reconnecting");
+					disconnect();
+				}else {
+					networkNameServer = tmp;
+					Serial.println("New ssid: " + networkNameServer);
+					APMode = false;
+					state = HaveSSIDSerial;
+				}
+				if (state == HaveSSIDSerial)
+					Serial.println("New password: ");
 
+			}
 		}
-	}
+}
+void WifiManager::loop() {
+	long now = millis();
+	runSerialLoop();
 	switch (state) {
 	case firstStart:
 		//staticRef->printState();
@@ -288,7 +296,7 @@ void WifiManager::loop() {
 		printState();
 		break;
 	case APWaitingForSTA:
-		if ((timeSinceAPPrint + 5000) < millis()) {
+		if ((timeSinceAPPrint + timeoutTime) < millis()) {
 			timeSinceAPPrint = millis();
 			Serial.println("Waiting for client to connect to AP "+String(millis()-timeSinceAPStart));
 		}
@@ -300,23 +308,35 @@ void WifiManager::loop() {
 	case Disconnected:
 		//printState();
 
-		if ((millis() - timeOfLastConnect) > 5000)
-			if ((millis() - timeOfLastDisconnect) > 5000) {
+		if ((timeoutTime + timeOfLastConnect) <now)
+			if ((timeoutTime+ timeOfLastDisconnect) < now) {
 				Serial.println(
 						"Timeouts for connection wait, reconnecting last connected: "
-								+ String(timeOfLastConnect)
+								+ String( timeOfLastConnect)
 								+ " last disconnected: "
-								+ String(timeOfLastDisconnect));
+								+ String(timeOfLastDisconnect)+
+								" now "+String(now));
 				state = reconnect;
 				printState();
 				connectionAttempts++;
 				if (connectionAttempts > rescanIncrement) {
 					connectionAttempts = 0;
-					rescan();
+					updateApList();
+					timeOfLastDisconnect=now;
+					whatToDoAfterScanning=scanDone;
 				}
 			}
 		break;
-
+	case scanRunning:
+		if(WiFi.scanComplete()>=0){
+			state=whatToDoAfterScanning;
+			Serial.println("scan DONE!");
+		}
+		break;
+	case scanDone:
+		rescan();
+		state=reconnect;
+		break;
 	case reconnect:
 		if (!APMode) {
 			Serial.println("connect to WiFi network");
@@ -351,8 +371,8 @@ void  WifiManager::disconnect(){
 	printState();
 	WiFi.disconnect(true);
 	connectionAttempts=rescanIncrement;
-	timeOfLastConnect = millis()+5001;
-	timeOfLastDisconnect =millis()+5001;
+	timeOfLastConnect = millis()-timeoutTime-1;
+	timeOfLastDisconnect =millis()-timeoutTime-1;
 	networkNameServer="none";
 	APMode=false;
 
@@ -380,8 +400,9 @@ void WifiManager::WiFiEvent(WiFiEvent_t event) {
 			state = Disconnected;
 			printState();
 			WiFi.disconnect(true);
-			Serial.println("WiFi lost connection, retry " + String(
+			Serial.println("\n\nWiFi lost connection, retry " + String(
 			rescanIncrement - connectionAttempts));
+			timeOfLastDisconnect=millis();
 		}
 		break;
 	case SYSTEM_EVENT_WIFI_READY: /**< ESP32 WiFi ready */
