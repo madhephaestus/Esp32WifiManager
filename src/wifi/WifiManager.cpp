@@ -395,7 +395,7 @@ void WifiManager::WiFiEvent(WiFiEvent_t event) {
 			printState();
 
 			//When connected set
-			Serial.print("\n\n\nWiFi connected! IP address: ");
+			Serial.print("\n\n\nWiFi connected! DHCP took "+String(millis()-timeOfLastConnect)+" IP address: ");
 			Serial.print(WiFi.localIP());
 			Serial.print("\n\n\n");
 			timeOfLastConnect = millis();
