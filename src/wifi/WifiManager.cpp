@@ -233,8 +233,8 @@ void WifiManager::rescan() {
 }
 void WifiManager::runSerialLoop(){
 	if (state != HaveSSIDSerial) {
-			if (Serial.available() > 0) {
-				String tmp = Serial.readString();
+			if (Serial.available() > 1) {
+				String tmp = Serial.readString().trim();
 				if (tmp.substring(0, 3).compareTo("AP:") == 0
 						|| tmp.substring(0, 3).compareTo("ap:") == 0) {
 					String got = tmp.substring(3, 18); // ensure SSID is less than 15 char to use the SSID as key for password
