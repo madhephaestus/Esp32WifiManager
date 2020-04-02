@@ -233,8 +233,9 @@ void WifiManager::rescan() {
 }
 void WifiManager::runSerialLoop(){
 	if (state != HaveSSIDSerial) {
-			if (Serial.available() > 0) {
+			if (Serial.available() > 1) {
 				String tmp = Serial.readString();
+				tmp.trim();
 				if (tmp.substring(0, 3).compareTo("AP:") == 0
 						|| tmp.substring(0, 3).compareTo("ap:") == 0) {
 					String got = tmp.substring(3, 18); // ensure SSID is less than 15 char to use the SSID as key for password
@@ -357,10 +358,14 @@ void WifiManager::loop() {
 		break;
 	case HaveSSIDSerial:
 		if (Serial.available() > 0) {
-			if (!APMode)
+			if (!APMode){
 				networkPswdServer = Serial.readString();
-			else
+				networkPswdServer.trim();
+			}
+			else{
 				apPswdServer = Serial.readString();
+				apPswdServer.trim();
+			}
 			state = reconnect;
 			printState();
 		}

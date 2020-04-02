@@ -49,7 +49,7 @@ private:
 	void runSerialLoop();
 public:
 	/**
-	 * Static reference used by teh wifi event to pass teh event from the static context to the object context.
+	 * Static reference used by the wifi event to pass the event from the static context to the object context.
 	 */
 	static WifiManager * staticRef;
 	/**
