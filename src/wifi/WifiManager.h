@@ -12,7 +12,7 @@
 #include <WiFi.h>
 #include <esp_wifi.h>
 #define rescanIncrement 2
-#define timeoutTime 2000
+#define timeoutTime 10000
 enum connectionState {
 	firstStart,
 	Disconnected,
