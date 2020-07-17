@@ -1,6 +1,12 @@
 # Esp32WifiManager 
 A framework for controlling the ESP 32's wifi stack
 
+# Documentation by Doxygen
+
+[Esp32WifiManager Doxygen](https://madhephaestus.github.io/Esp32WifiManager/files.html)
+
+
+
 # Connect to Wifi Network
 To connect to a network named "mine" with a password "pass" do the following:
 
