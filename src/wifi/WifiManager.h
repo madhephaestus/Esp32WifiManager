@@ -47,6 +47,8 @@ private:
 	enum connectionState whatToDoAfterScanning=reconnect;
 	bool setupDone = false;
 	void runSerialLoop();
+	void setPassword(String ssid,String pass);
+	String getPassword(String ssid,String defaultPass="none");
 public:
 	/**
 	 * Static reference used by the wifi event to pass the event from the static context to the object context.

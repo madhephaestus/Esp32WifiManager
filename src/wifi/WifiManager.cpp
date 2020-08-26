@@ -79,9 +79,9 @@ void WifiManager::setup() {
 
 	preferences.begin("wifi", true);
 	networkNameServer 	= preferences.getString("ssid", 					"none");    //NVS key ssid
-	networkPswdServer 	= preferences.getString(networkNameServer.c_str(),	"none"); //NVS key password
+	networkPswdServer 	= getPassword(networkNameServer); //NVS key password
 	apNameServer 		= preferences.getString("apssid",					defaultap); //NVS key ssid
-	apPswdServer 		= preferences.getString(apNameServer.c_str(), 		"Wumpus3742"); //NVS key password
+	apPswdServer 		= getPassword(apNameServer, 		"Wumpus3742"); //NVS key password
 	preferences.end();
 
 	state = reconnect;
@@ -110,9 +110,9 @@ void WifiManager::startAP() {
 
 		delay(300);
 	}
-	if (preferences.getString(apNameServer.c_str(), "none").compareTo(
+	if (getPassword(apNameServer).compareTo(
 			apPswdServer) != 0) {
-		preferences.putString(apNameServer.c_str(), apPswdServer);
+		setPassword(apNameServer,apPswdServer);
 		delay(300);
 	}
 
@@ -169,7 +169,7 @@ void WifiManager::rescan() {
 			Serial.println("no networks found");
 		} else {
 			Serial.println(String(n) + " networks found");
-			if (preferences.getString(networkNameServer.c_str(), "none").compareTo(
+			if (getPassword(networkNameServer).compareTo(
 					"none") != 0) {
 				for (int i = 0; i < n && myNetworkPresent == false; ++i) {
 					// Print SSID and RSSI for each network found
@@ -179,7 +179,7 @@ void WifiManager::rescan() {
 						Serial.println(
 								"Default network found: "
 										+ WiFi.WiFiScanClass::SSID(i));
-						networkPswdServer = preferences.getString(networkNameServer.c_str(), "none"); //NVS key password
+						networkPswdServer = getPassword(networkNameServer); //NVS key password
 					}
 
 				}
@@ -191,13 +191,12 @@ void WifiManager::rescan() {
 				for (int i = 0; i < n; ++i) {
 					// Print SSID and RSSI for each network found
 					String tmp = WiFi.WiFiScanClass::SSID(i);
-					if (preferences.getString(tmp.c_str(), "none").compareTo("none") != 0) {
+					if (getPassword(tmp).compareTo("none") != 0) {
 						myNetworkPresent = true;
 						if(WiFi.WiFiScanClass::RSSI(i)>bestStren){
 							bestNet=WiFi.WiFiScanClass::SSID(i);
 							bestStren=WiFi.WiFiScanClass::RSSI(i);
-							networkPswdServer = preferences.getString(
-														tmp.c_str(), "none"); //NVS key password
+							networkPswdServer = getPassword(tmp); //NVS key password
 						}
 					}
 					Serial.print(i + 1);
@@ -273,6 +272,19 @@ void WifiManager::runSerialLoop(){
 			}
 		}
 }
+
+void WifiManager::setPassword(String ssid,String pass){
+	if(networkNameServer.length()<=15)
+		preferences.putString(ssid.c_str(), pass);
+	else{
+		preferences.putString(ssid.substring(0, 15).c_str(), pass);
+	}
+}
+String WifiManager::getPassword(String ssid,String defaultPass){
+	if(ssid.length()<=15)
+		return preferences.getString(ssid.c_str(), defaultPass);
+	return preferences.getString(ssid.substring(0, 15).c_str(), defaultPass);
+}
 void WifiManager::loop() {
 	long now = millis();
 	runSerialLoop();
@@ -291,10 +303,10 @@ void WifiManager::loop() {
 			preferences.putString("ssid", networkNameServer);
 			delay(300);
 		}
-		if (preferences.getString(networkNameServer.c_str(), "none").compareTo(
+		if (getPassword(networkNameServer).compareTo(
 				networkPswdServer) != 0) {
 			Serial.println("Writing new pass ****");
-			preferences.putString(networkNameServer.c_str(), networkPswdServer);
+			setPassword(networkNameServer,networkPswdServer);
 			delay(300);
 		}
 		preferences.end();
