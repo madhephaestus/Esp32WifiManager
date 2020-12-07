@@ -6,6 +6,11 @@
  */
 
 #include "WifiManager.h"
+#include <Arduino.h>
+#include <Preferences.h>
+#include <WiFi.h>
+#include <esp_wifi.h>
+
 WifiManager * WifiManager::staticRef = NULL;
 
 static void WiFiEventWifiManager(WiFiEvent_t event) {
@@ -51,11 +56,7 @@ void WifiManager::printState() {
 }
 void WifiManager::setupAP() {
 	APMode = true;
-	WiFi.mode(WIFI_STA);
-	WiFi.disconnect();
-	delay(100);
 	setup();
-	state = reconnect;
 }
 /**
  * Start the manager but re-scan the environment first
@@ -64,13 +65,24 @@ void WifiManager::setupScan(){
 	setup();
 	disconnect();
 }
+void WifiManager::mode(wifi_mode_t m){
+	if(m==WiFi.getMode())
+		return;// mode is already set
+	WiFi.disconnect(true);
+	delay(300);
+	while(	!WiFi.mode(m) ){
+		log_e("Mode set failed! %d is mode %d",m,WiFi.getMode());
+		WiFi.disconnect(true);
+		delay(1000);
+	}
+	log_i("Mode set success %d",m);
+}
 void WifiManager::setup() {
 	if (setupDone)
 		return;
 	Serial.begin(115200);
 
-
-	WiFi.mode(WIFI_MODE_AP);
+	mode(WIFI_MODE_AP) ;
 	uint8_t mac[6];
 	char macStr[18] = { 0 };
 	esp_wifi_get_mac(WIFI_IF_STA, mac);
@@ -87,18 +99,19 @@ void WifiManager::setup() {
 	state = reconnect;
 	staticRef = this;
 	connectionAttempts = 0;
-	WiFi.onEvent(WiFiEventWifiManager);
+
 	connectionAttempts = 1;
 	setupDone = true;
+	log_i("WifiManager.setup Complete");
 }
 void WifiManager::startAP() {
-	WiFi.disconnect(true);
-	Serial.println("\n\n\nAP starting " + apNameServer);
-//Initiate connection
-	WiFi.mode(WIFI_MODE_AP);
-	String mac = WiFi.macAddress();
-	WiFi.softAP(apNameServer.c_str(), apPswdServer.c_str());
 
+	Serial.println("\n\n\nAP starting " + apNameServer);
+
+//Initiate connection
+	mode(WIFI_MODE_AP);
+	WiFi.softAP(apNameServer.c_str(), apPswdServer.c_str());
+	String mac = WiFi.macAddress();
 	timeOfLastConnect = 0;
 	timeOfLastDisconnect = millis() - rescanIncrement;
 
@@ -118,16 +131,17 @@ void WifiManager::startAP() {
 
 	preferences.end();
 	Serial.println("Starting AP:" + apNameServer + "\npass = " + apPswdServer);
+	Serial.println("\n\nIP: 192.168.4.1\n\n");
+
+	Serial.println("Mac Address: " + mac);
 	timeSinceAPStart=millis();
+	log_i("WifiManager.startAP Complete");
 }
 void WifiManager::connectToWiFi(const char * ssid, const char * pwd) {
 
 	Serial.println("Attempting to connect to WiFi network: " + String(ssid));
-//Initiate connection
 
-	WiFi.mode(WIFI_STA);
-	WiFi.disconnect(true);
-	delay(300);
+	mode(WIFI_STA);
 	state = Disconnected;
 
 	timeOfLastConnect = 0;
@@ -148,23 +162,27 @@ void WifiManager::connectToWiFi(const char * ssid, const char * pwd) {
  * @Note this will take a few seconds and is BLOCKING during that time
  */
 int WifiManager::updateApList(){
-	Serial.println("scan start");
+	Serial.println("\n\nScan start\n\n");
 	// WiFi.scanNetworks will return the number of networks found
-	WiFi.mode(WIFI_STA);
-	WiFi.disconnect(true);
+	WiFi.disconnect(true,true);
+	delay(300);
+	while(WiFi.scanNetworks(true,  false, false, 1000)==WIFI_SCAN_FAILED){
+		log_e("Start async scan failed!");
+		delay(300);
+		WiFi.disconnect(true,true);
+		delay(300);
+	}
 	delay(100);
-	int16_t n = WiFi.scanComplete();
-	WiFi.scanNetworks(true,  false, false, 300);
 	state = scanRunning;
-	whatToDoAfterScanning= reconnect;
-	return n;
+	//whatToDoAfterScanning= reconnect;
+	return 0;
 }
 
 void WifiManager::rescan() {
 	bool myNetworkPresent = false;
 	preferences.begin("wifi", true);
 	int16_t n = WiFi.scanComplete();
-	if (n >= 0) {
+	if (n != WIFI_SCAN_FAILED) {
 		if (n == 0) {
 			Serial.println("no networks found");
 		} else {
@@ -291,7 +309,7 @@ void WifiManager::loop() {
 	switch (state) {
 	case firstStart:
 		//staticRef->printState();
-
+		WiFi.onEvent(WiFiEventWifiManager);
 		state = reconnect;
 		printState();
 		break;
@@ -340,16 +358,17 @@ void WifiManager::loop() {
 				connectionAttempts++;
 				if (connectionAttempts > rescanIncrement) {
 					connectionAttempts = 0;
+					Serial.println("Connection failed after "+String(rescanIncrement)+" attempts\nStarting updateApList");
 					updateApList();
 					timeOfLastDisconnect=now;
-					whatToDoAfterScanning=scanDone;
+					//whatToDoAfterScanning=scanDone;
 				}
 			}
 		break;
 	case scanRunning:
 		if(WiFi.scanComplete()!=WIFI_SCAN_RUNNING){
-			state=whatToDoAfterScanning;
-			Serial.println("scan DONE!");
+			state=scanDone;
+			Serial.println("scan DONE! "+String(WiFi.scanComplete()));
 		}
 		break;
 	case scanDone:
@@ -358,7 +377,7 @@ void WifiManager::loop() {
 		break;
 	case reconnect:
 		if (!APMode) {
-			Serial.println("connect to WiFi network");
+			Serial.println("Connecting to WiFi network "+networkNameServer);
 			//Connect to the WiFi network
 			connectToWiFi(networkNameServer.c_str(), networkPswdServer.c_str());
 			state = Disconnected;
@@ -392,7 +411,7 @@ void WifiManager::loop() {
 void  WifiManager::disconnect(){
 	state = Disconnected;
 	printState();
-	WiFi.disconnect(true);
+	WiFi.disconnect(true,true);
 	delay(300);
 	connectionAttempts=rescanIncrement;
 	timeOfLastConnect = millis()-timeoutTime-1;
@@ -423,7 +442,7 @@ void WifiManager::WiFiEvent(WiFiEvent_t event) {
 		if (!APMode) {
 			state = Disconnected;
 			printState();
-			WiFi.disconnect(true);
+			WiFi.disconnect(true,true);
 			Serial.println("\n\nWiFi lost connection, retry " + String(
 			rescanIncrement - connectionAttempts));
 			timeOfLastDisconnect=millis();

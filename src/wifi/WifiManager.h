@@ -44,11 +44,12 @@ private:
 	long timeSinceAPPrint =0;
 	long timeSinceAPStart =0;
 	enum connectionState state=firstStart;
-	enum connectionState whatToDoAfterScanning=reconnect;
+	//enum connectionState whatToDoAfterScanning=reconnect;
 	bool setupDone = false;
 	void runSerialLoop();
 	void setPassword(String ssid,String pass);
 	String getPassword(String ssid,String defaultPass="none");
+	void mode(wifi_mode_t);
 public:
 	/**
 	 * Static reference used by the wifi event to pass the event from the static context to the object context.
