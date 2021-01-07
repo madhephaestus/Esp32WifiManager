@@ -1,3 +1,4 @@
+
 /*
  * WifiManager.cpp
  *
@@ -6,11 +7,6 @@
  */
 
 #include "WifiManager.h"
-#include <Arduino.h>
-#include <Preferences.h>
-#include <WiFi.h>
-#include <esp_wifi.h>
-
 WifiManager * WifiManager::staticRef = NULL;
 
 static void WiFiEventWifiManager(WiFiEvent_t event) {
@@ -56,7 +52,11 @@ void WifiManager::printState() {
 }
 void WifiManager::setupAP() {
 	APMode = true;
+	WiFi.mode(WIFI_STA);
+	WiFi.disconnect();
+	delay(100);
 	setup();
+	state = reconnect;
 }
 /**
  * Start the manager but re-scan the environment first
@@ -65,24 +65,13 @@ void WifiManager::setupScan(){
 	setup();
 	disconnect();
 }
-void WifiManager::mode(wifi_mode_t m){
-	if(m==WiFi.getMode())
-		return;// mode is already set
-	WiFi.disconnect(true);
-	delay(300);
-	while(	!WiFi.mode(m) ){
-		log_e("Mode set failed! %d is mode %d",m,WiFi.getMode());
-		WiFi.disconnect(true);
-		delay(1000);
-	}
-	log_i("Mode set success %d",m);
-}
 void WifiManager::setup() {
 	if (setupDone)
 		return;
 	Serial.begin(115200);
 
-	mode(WIFI_MODE_AP) ;
+
+	WiFi.mode(WIFI_MODE_AP);
 	uint8_t mac[6];
 	char macStr[18] = { 0 };
 	esp_wifi_get_mac(WIFI_IF_STA, mac);
@@ -99,19 +88,18 @@ void WifiManager::setup() {
 	state = reconnect;
 	staticRef = this;
 	connectionAttempts = 0;
-
+	WiFi.onEvent(WiFiEventWifiManager);
 	connectionAttempts = 1;
 	setupDone = true;
-	log_i("WifiManager.setup Complete");
 }
 void WifiManager::startAP() {
-
+	WiFi.disconnect(true);
 	Serial.println("\n\n\nAP starting " + apNameServer);
-
 //Initiate connection
-	mode(WIFI_MODE_AP);
-	WiFi.softAP(apNameServer.c_str(), apPswdServer.c_str());
+	WiFi.mode(WIFI_MODE_AP);
 	String mac = WiFi.macAddress();
+	WiFi.softAP(apNameServer.c_str(), apPswdServer.c_str());
+
 	timeOfLastConnect = 0;
 	timeOfLastDisconnect = millis() - rescanIncrement;
 
@@ -131,17 +119,16 @@ void WifiManager::startAP() {
 
 	preferences.end();
 	Serial.println("Starting AP:" + apNameServer + "\npass = " + apPswdServer);
-	Serial.println("\n\nIP: 192.168.4.1\n\n");
-
-	Serial.println("Mac Address: " + mac);
 	timeSinceAPStart=millis();
-	log_i("WifiManager.startAP Complete");
 }
 void WifiManager::connectToWiFi(const char * ssid, const char * pwd) {
 
 	Serial.println("Attempting to connect to WiFi network: " + String(ssid));
+//Initiate connection
 
-	mode(WIFI_STA);
+	WiFi.mode(WIFI_STA);
+	WiFi.disconnect(true);
+	delay(300);
 	state = Disconnected;
 
 	timeOfLastConnect = 0;
@@ -162,27 +149,23 @@ void WifiManager::connectToWiFi(const char * ssid, const char * pwd) {
  * @Note this will take a few seconds and is BLOCKING during that time
  */
 int WifiManager::updateApList(){
-	Serial.println("\n\nScan start\n\n");
+	Serial.println("scan start");
 	// WiFi.scanNetworks will return the number of networks found
-	WiFi.disconnect(true,true);
-	delay(300);
-	while(WiFi.scanNetworks(true,  false, false, 1000)==WIFI_SCAN_FAILED){
-		log_e("Start async scan failed!");
-		delay(300);
-		WiFi.disconnect(true,true);
-		delay(300);
-	}
+	WiFi.mode(WIFI_STA);
+	WiFi.disconnect(true);
 	delay(100);
+	int16_t n = WiFi.scanComplete();
+	WiFi.scanNetworks(true,  false, false, 300);
 	state = scanRunning;
-	//whatToDoAfterScanning= reconnect;
-	return 0;
+	whatToDoAfterScanning= reconnect;
+	return n;
 }
 
 void WifiManager::rescan() {
 	bool myNetworkPresent = false;
 	preferences.begin("wifi", true);
 	int16_t n = WiFi.scanComplete();
-	if (n != WIFI_SCAN_FAILED) {
+	if (n >= 0) {
 		if (n == 0) {
 			Serial.println("no networks found");
 		} else {
@@ -291,25 +274,26 @@ void WifiManager::runSerialLoop(){
 		}
 }
 
+String WifiManager::getPasswordKey(String ssid) {
+	if (ssid.length() <= PASS_LEN_KEY)
+		return ssid;
+	else
+		return ssid.substring(0, PASS_LEN_KEY);
+}
 void WifiManager::setPassword(String ssid,String pass){
-	if(networkNameServer.length()<=15)
-		preferences.putString(ssid.c_str(), pass);
-	else{
-		preferences.putString(ssid.substring(0, 15).c_str(), pass);
-	}
+	preferences.putString(getPasswordKey(ssid).c_str(), pass);
 }
 String WifiManager::getPassword(String ssid,String defaultPass){
-	if(ssid.length()<=15)
-		return preferences.getString(ssid.c_str(), defaultPass);
-	return preferences.getString(ssid.substring(0, 15).c_str(), defaultPass);
+	return preferences.getString(getPasswordKey(ssid).c_str(), defaultPass);
 }
+
 void WifiManager::loop() {
 	long now = millis();
 	runSerialLoop();
 	switch (state) {
 	case firstStart:
 		//staticRef->printState();
-		WiFi.onEvent(WiFiEventWifiManager);
+
 		state = reconnect;
 		printState();
 		break;
@@ -358,17 +342,16 @@ void WifiManager::loop() {
 				connectionAttempts++;
 				if (connectionAttempts > rescanIncrement) {
 					connectionAttempts = 0;
-					Serial.println("Connection failed after "+String(rescanIncrement)+" attempts\nStarting updateApList");
 					updateApList();
 					timeOfLastDisconnect=now;
-					//whatToDoAfterScanning=scanDone;
+					whatToDoAfterScanning=scanDone;
 				}
 			}
 		break;
 	case scanRunning:
 		if(WiFi.scanComplete()!=WIFI_SCAN_RUNNING){
-			state=scanDone;
-			Serial.println("scan DONE! "+String(WiFi.scanComplete()));
+			state=whatToDoAfterScanning;
+			Serial.println("scan DONE!");
 		}
 		break;
 	case scanDone:
@@ -377,7 +360,7 @@ void WifiManager::loop() {
 		break;
 	case reconnect:
 		if (!APMode) {
-			Serial.println("Connecting to WiFi network "+networkNameServer);
+			Serial.println("connect to WiFi network");
 			//Connect to the WiFi network
 			connectToWiFi(networkNameServer.c_str(), networkPswdServer.c_str());
 			state = Disconnected;
@@ -411,7 +394,7 @@ void WifiManager::loop() {
 void  WifiManager::disconnect(){
 	state = Disconnected;
 	printState();
-	WiFi.disconnect(true,true);
+	WiFi.disconnect(true);
 	delay(300);
 	connectionAttempts=rescanIncrement;
 	timeOfLastConnect = millis()-timeoutTime-1;
@@ -442,7 +425,7 @@ void WifiManager::WiFiEvent(WiFiEvent_t event) {
 		if (!APMode) {
 			state = Disconnected;
 			printState();
-			WiFi.disconnect(true,true);
+			WiFi.disconnect(true);
 			Serial.println("\n\nWiFi lost connection, retry " + String(
 			rescanIncrement - connectionAttempts));
 			timeOfLastDisconnect=millis();
