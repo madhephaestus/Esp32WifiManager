@@ -155,7 +155,7 @@ int WifiManager::updateApList(){
 	WiFi.disconnect(true);
 	delay(100);
 	int16_t n = WiFi.scanComplete();
-	WiFi.scanNetworks(true,  false, false, 300);
+	WiFi.scanNetworks(false,  false, false, 300); //async mode will always return an empty list
 	state = scanRunning;
 	whatToDoAfterScanning= reconnect;
 	return n;
