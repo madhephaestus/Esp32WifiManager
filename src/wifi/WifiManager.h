@@ -10,7 +10,7 @@
 #include <Arduino.h>
 #include <Preferences.h>
 #include <WiFi.h>
-#include <esp_wifi.h>
+//#include <esp_wifi.h>
 #define rescanIncrement 2
 #define timeoutTime 10000
 #define PASS_LEN_KEY 12
@@ -51,6 +51,7 @@ private:
 	void setPassword(String ssid,String pass);
 	String getPassword(String ssid,String defaultPass="none");
 	String getPasswordKey(String ssid);
+	void internalStart();
 public:
 	/**
 	 * Static reference used by the wifi event to pass the event from the static context to the object context.
