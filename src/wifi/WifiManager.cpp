@@ -13,7 +13,7 @@ void WifiThreadLoop(void *param){
 	while(true){
 		if(WifiManager::staticRef!=NULL)
 			WifiManager::staticRef->loopThread();
-		vTaskDelay(100); //sleep 10ms
+		vTaskDelay(10); //sleep 10ms
 	}
 }
 
