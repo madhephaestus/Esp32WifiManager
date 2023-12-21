@@ -7,6 +7,16 @@
 
 #include "WifiManager.h"
 WifiManager *WifiManager::staticRef = NULL;
+static TaskHandle_t WIFIcomplexHandlerTaskUS;
+void WifiThreadLoop(void *param){
+	Serial.println("WifiManager Thread Started");
+	while(true){
+		if(WifiManager::staticRef!=NULL)
+			WifiManager::staticRef->loopThread();
+		vTaskDelay(100); //sleep 10ms
+	}
+}
+
 
 static void WiFiEventWifiManager(WiFiEvent_t event) {
 	if (WifiManager::staticRef != NULL)
@@ -14,6 +24,7 @@ static void WiFiEventWifiManager(WiFiEvent_t event) {
 }
 
 WifiManager::WifiManager() {
+	staticRef=this;
 }
 
 WifiManager::~WifiManager() {
@@ -171,7 +182,13 @@ int WifiManager::updateApList() {
 	WiFi.disconnect(true);
 	delay(100);
 	int16_t n = WiFi.scanComplete();
-	WiFi.scanNetworks(true, false, false, 300);
+	WiFi.scanNetworks(false,
+			true,
+			false,
+			100,
+			0,
+			nullptr,
+			nullptr);
 	state = scanRunning;
 	whatToDoAfterScanning = reconnect;
 	return n;
@@ -301,8 +318,22 @@ void WifiManager::setPassword(String ssid, String pass) {
 String WifiManager::getPassword(String ssid, String defaultPass) {
 	return preferences.getString(getPasswordKey(ssid).c_str(), defaultPass);
 }
-
-void WifiManager::loop() {
+/**
+ * Use a thread to manage the wifi
+ */
+void WifiManager::startThread() {
+	useThread=true;
+	xTaskCreatePinnedToCore(WifiThreadLoop, "WifiManager", 8192, NULL, 2, // low priority timout thread
+					&WIFIcomplexHandlerTaskUS, 1);
+}
+/**
+ * call the loop function to update the state
+ */
+void WifiManager::loop(){
+	if(!useThread)
+		loopThread();
+}
+void WifiManager::loopThread() {
 	long now = millis();
 	runSerialLoop();
 	switch (state) {
@@ -342,6 +373,7 @@ void WifiManager::loop() {
 		break;
 	case apconnected:
 		state = Connected;
+		// no break
 	case Connected:
 		break;
 	case Disconnected:
