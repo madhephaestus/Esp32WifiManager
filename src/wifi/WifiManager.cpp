@@ -479,8 +479,11 @@ void WifiManager::WiFiEvent(WiFiEvent_t event) {
 	case ARDUINO_EVENT_WIFI_STA_CONNECTED:
 		Serial.println("ARDUINO_EVENT_WIFI_STA_CONNECTED");
 		break;
+	case ARDUINO_EVENT_WIFI_AP_STADISCONNECTED:
+		Serial.println("ARDUINO_EVENT_WIFI_AP_STADISCONNECTED");
+		// no break
 	case ARDUINO_EVENT_WIFI_STA_DISCONNECTED:
-		Serial.println("ARDUINO_EVENT_WIFI_STA_DISCONNECTED");
+		if(event==ARDUINO_EVENT_WIFI_STA_DISCONNECTED)Serial.println("ARDUINO_EVENT_WIFI_STA_DISCONNECTED");
 		timeOfLastDisconnect = millis();
 		if (!APMode) {
 			state = Disconnected;
@@ -524,9 +527,6 @@ void WifiManager::WiFiEvent(WiFiEvent_t event) {
 		break;
 	case ARDUINO_EVENT_WIFI_AP_STACONNECTED:
 		Serial.println("ARDUINO_EVENT_WIFI_AP_STACONNECTED");
-		// no break
-	case ARDUINO_EVENT_WIFI_AP_STADISCONNECTED:
-		Serial.println("ARDUINO_EVENT_WIFI_AP_STADISCONNECTED");
 		// no break
 	case ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED:
 		Serial.println("ARDUINO_EVENT_WIFI_AP_STAIPASSIGNED");
